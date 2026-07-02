@@ -301,4 +301,67 @@
     if (document.readyState === 'complete') starsStart();
     else window.addEventListener('load', starsStart);
   }
+
+  // ---------- onboarding pills → UAE-representative, sourced from the taxonomy ----------
+  // (the prototype screens ship demo lists; we swap in the UAE taxonomy at runtime so the
+  //  designer's screens stay untouched and matching + onboarding share ONE source of truth.)
+  var whenReady = function (fn) { if (document.readyState === 'complete') fn(); else window.addEventListener('load', fn); };
+
+  // preferences (professions): repoint the autocomplete at the full UAE title list (search reads it live)
+  if (path === 'waselni-preferences.html') {
+    whenReady(function () {
+      try {
+        var T = window.WaselniTaxonomy; if (!T) return;
+        if (typeof JOB_LIST === 'undefined' || !Array.isArray(JOB_LIST)) return;
+        var uae = T.allProfessions(); if (!uae.length) return;
+        JOB_LIST.length = 0; uae.forEach(function (p) { JOB_LIST.push(p); });
+      } catch (e) {}
+    });
+  }
+
+  // interests: rebuild the carousel from the UAE interest list (addInterest stays the screen's own)
+  if (path === 'waselni-interests.html') {
+    whenReady(function () {
+      try {
+        var T = window.WaselniTaxonomy; if (!T) return;
+        var track = document.getElementById('carouselTrack');
+        if (!track || typeof window.addInterest !== 'function') return;
+        var list = T.allInterests(); if (!list.length) return;
+        track.innerHTML = '';
+        list.concat(list).forEach(function (i) {                         // doubled for the seamless scroll loop
+          var pill = document.createElement('button');
+          pill.className = 'carousel-pill';
+          pill.textContent = i;
+          pill.onclick = function () { window.addInterest(i); };
+          track.appendChild(pill);
+        });
+      } catch (e) {}
+    });
+  }
+
+  // find-your-people: SEED "who to meet" from the user's sector (Yassin's Excel seed; learned layer = later)
+  if (path === 'waselni-find-your-people.html') {
+    whenReady(function () {
+      try {
+        var T = window.WaselniTaxonomy; if (!T) return;
+        var grid = document.getElementById('chipsGrid');
+        if (!grid || typeof window.toggleChip !== 'function') return;
+        var prof = {}; try { prof = JSON.parse(LS.getItem('waselni_profile') || '{}'); } catch (e) {}
+        var job = (prof.jobTitles && prof.jobTitles[0]) || '';
+        var seed = T.suggestedFor(job);
+        if (!seed.length) {                                              // free-typed / unknown sector → a broad UAE default
+          seed = ['Banking, Finance & Wealth', 'Real Estate & Property', 'Consulting, Legal & Professional Services',
+                  'Technology, Fintech & Web3', 'Government & Public Sector', 'Media, Marketing & Creative'];
+        }
+        grid.innerHTML = '';
+        seed.slice(0, 10).forEach(function (s) {
+          var chip = document.createElement('div');
+          chip.className = 'chip';
+          chip.textContent = s;
+          chip.onclick = function () { window.toggleChip(s, chip); };
+          grid.appendChild(chip);
+        });
+      } catch (e) {}
+    });
+  }
 })();

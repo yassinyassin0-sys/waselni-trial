@@ -24,6 +24,17 @@ def read_wide(ws):
 families   = read_wide(wb["Career families"])
 categories = read_wide(wb["Interest groups"])
 
+def read_pairs(ws, sep="·"):
+    """2-column tab: col A = key, col B = 'a · b · c' → {key: [a, b, c]}."""
+    out = {}
+    for r in range(2, ws.max_row + 1):
+        k, v = ws.cell(r, 1).value, ws.cell(r, 2).value
+        if not k or not v: continue
+        out[str(k).strip()] = [s.strip() for s in str(v).split(sep) if s.strip()]
+    return out
+
+suggested = read_pairs(wb["Suggested people to meet"])
+
 def js_obj(d):
     return "{\n" + "\n".join(
         "    " + json.dumps(k, ensure_ascii=False) + ": " + json.dumps(v, ensure_ascii=False) + ","
@@ -38,7 +49,29 @@ HELPERS = r"""
   const singularise = s => norm(s).replace(/ies$/, 'y').replace(/s$/, '');
 
   const WaselniTaxonomy = {
-    CAREER_FAMILIES, INTEREST_CATEGORIES,
+    CAREER_FAMILIES, INTEREST_CATEGORIES, SUGGESTED_PEOPLE,
+
+    /* flat, sorted list of every job title across all sectors (onboarding search) */
+    allProfessions() {
+      const out = [];
+      for (const fam in CAREER_FAMILIES) CAREER_FAMILIES[fam].forEach(p => out.push(p));
+      return out.sort((a, b) => a.localeCompare(b));
+    },
+
+    /* flat list of every interest, kept in group order (onboarding carousel) */
+    allInterests() {
+      const out = [];
+      for (const cat in INTEREST_CATEGORIES) INTEREST_CATEGORIES[cat].forEach(i => out.push(i));
+      return out;
+    },
+
+    /* SEED sectors a user's sector is suggested to meet (find-your-people).
+       Never a preset — just a starting point the user edits; the learned
+       layer adds to this from real picks. Empty [] if the sector is unknown. */
+    suggestedFor(profession) {
+      const fam = this.familyOf(profession) || FAMILY_BY_NORM[norm(profession)] || null;
+      return (fam && SUGGESTED_PEOPLE[fam]) ? SUGGESTED_PEOPLE[fam].slice() : [];
+    },
 
     /* the family (sector) a profession belongs to, or null if free-typed */
     familyOf(profession) { return PROF_TO_FAMILY[norm(profession)] || null; },
@@ -88,6 +121,8 @@ out = ("""/* ===================================================================
   const CAREER_FAMILIES = """ + js_obj(families) + """;
 
   const INTEREST_CATEGORIES = """ + js_obj(categories) + """;
+
+  const SUGGESTED_PEOPLE = """ + js_obj(suggested) + """;
 """ + HELPERS)
 
 open(JS, "w", encoding="utf-8").write(out)

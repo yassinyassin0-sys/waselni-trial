@@ -44,6 +44,22 @@
     "Digital & lifestyle": ["Gaming & e-sports", "Travel", "Reading & book clubs"],
   };
 
+  const SUGGESTED_PEOPLE = {
+    "Real Estate & Property": ["Banking, Finance & Wealth", "Construction & Engineering", "Consulting, Legal & Professional Services", "Luxury Retail & Fashion", "Government & Public Sector"],
+    "Banking, Finance & Wealth": ["Real Estate & Property", "Consulting, Legal & Professional Services", "Technology, Fintech & Web3", "Trade, Logistics & Supply Chain", "Government & Public Sector"],
+    "Construction & Engineering": ["Real Estate & Property", "Oil, Gas & Energy", "Government & Public Sector", "Consulting, Legal & Professional Services", "Trade, Logistics & Supply Chain"],
+    "Trade, Logistics & Supply Chain": ["Banking, Finance & Wealth", "Government & Public Sector", "Oil, Gas & Energy", "Consulting, Legal & Professional Services"],
+    "Aviation & Airlines": ["Hospitality & Tourism", "Government & Public Sector", "Technology, Fintech & Web3", "Trade, Logistics & Supply Chain"],
+    "Hospitality & Tourism": ["Media, Marketing & Creative", "Luxury Retail & Fashion", "Aviation & Airlines", "Real Estate & Property"],
+    "Oil, Gas & Energy": ["Government & Public Sector", "Construction & Engineering", "Banking, Finance & Wealth", "Consulting, Legal & Professional Services"],
+    "Government & Public Sector": ["Real Estate & Property", "Oil, Gas & Energy", "Banking, Finance & Wealth", "Consulting, Legal & Professional Services", "Construction & Engineering"],
+    "Healthcare & Medicine": ["Government & Public Sector", "Consulting, Legal & Professional Services", "Technology, Fintech & Web3", "Banking, Finance & Wealth"],
+    "Consulting, Legal & Professional Services": ["Banking, Finance & Wealth", "Real Estate & Property", "Government & Public Sector", "Technology, Fintech & Web3", "Oil, Gas & Energy"],
+    "Technology, Fintech & Web3": ["Banking, Finance & Wealth", "Consulting, Legal & Professional Services", "Media, Marketing & Creative", "Real Estate & Property"],
+    "Media, Marketing & Creative": ["Technology, Fintech & Web3", "Luxury Retail & Fashion", "Hospitality & Tourism", "Banking, Finance & Wealth"],
+    "Luxury Retail & Fashion": ["Media, Marketing & Creative", "Hospitality & Tourism", "Real Estate & Property", "Banking, Finance & Wealth"],
+  };
+
   /* ---- reverse indexes (normalised: lowercased + trimmed) ------------- */
   const norm = s => (s || '').toString().trim().toLowerCase();
   const PROF_TO_FAMILY = {}, INT_TO_CATEGORY = {}, FAMILY_BY_NORM = {};
@@ -52,7 +68,29 @@
   const singularise = s => norm(s).replace(/ies$/, 'y').replace(/s$/, '');
 
   const WaselniTaxonomy = {
-    CAREER_FAMILIES, INTEREST_CATEGORIES,
+    CAREER_FAMILIES, INTEREST_CATEGORIES, SUGGESTED_PEOPLE,
+
+    /* flat, sorted list of every job title across all sectors (onboarding search) */
+    allProfessions() {
+      const out = [];
+      for (const fam in CAREER_FAMILIES) CAREER_FAMILIES[fam].forEach(p => out.push(p));
+      return out.sort((a, b) => a.localeCompare(b));
+    },
+
+    /* flat list of every interest, kept in group order (onboarding carousel) */
+    allInterests() {
+      const out = [];
+      for (const cat in INTEREST_CATEGORIES) INTEREST_CATEGORIES[cat].forEach(i => out.push(i));
+      return out;
+    },
+
+    /* SEED sectors a user's sector is suggested to meet (find-your-people).
+       Never a preset — just a starting point the user edits; the learned
+       layer adds to this from real picks. Empty [] if the sector is unknown. */
+    suggestedFor(profession) {
+      const fam = this.familyOf(profession) || FAMILY_BY_NORM[norm(profession)] || null;
+      return (fam && SUGGESTED_PEOPLE[fam]) ? SUGGESTED_PEOPLE[fam].slice() : [];
+    },
 
     /* the family (sector) a profession belongs to, or null if free-typed */
     familyOf(profession) { return PROF_TO_FAMILY[norm(profession)] || null; },
