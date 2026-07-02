@@ -265,6 +265,36 @@
       }).filter(Boolean).sort((a, b) => b._score - a._score);
     },
 
+    /* Driver's full roster for their journey: accepted (confirmed) + pending (candidates).
+       Lets the Journeys screen show a coherent driver view as decisions are made. */
+    async getMyRoster() {
+      const empty = { journey: null, confirmed: [], pending: [] };
+      if (!sb) return empty;
+      const j = await this.getMyJourney(); if (!j) return empty;
+      const { data: reqs } = await sb.from('trial_requests').select('*')
+        .eq('journey_id', j.id).in('status', ['pending', 'accepted']);
+      const rows = reqs || [];
+      const ids = rows.map(r => r.passenger_id);
+      if (!ids.length) return { journey: j, confirmed: [], pending: [] };
+      const { data: users } = await sb.from('trial_users').select('*').in('id', ids);
+      const byId = {}; (users || []).forEach(u => { byId[u.id] = u; });
+      const meP = ls.profile();
+      const M = window.WaselniMatching;
+      const build = (r) => {
+        const u = byId[r.passenger_id]; if (!u) return null;
+        const them = { jobTitles: u.job_titles, interests: u.interests, preferences: u.audience };
+        const score = M ? M.networkScore(meP, them, j.intent) : 0;
+        const why = M ? M.reasons(meP, them) : [];
+        return { requestId: r.id, person: rowToPerson(u), reasons: why, _score: score };
+      };
+      const byScore = (a, b) => b._score - a._score;
+      return {
+        journey: j,
+        confirmed: rows.filter(r => r.status === 'accepted').map(build).filter(Boolean).sort(byScore),
+        pending:   rows.filter(r => r.status === 'pending').map(build).filter(Boolean).sort(byScore),
+      };
+    },
+
     /* Driver accepts or declines a candidate. */
     async decideCandidate(requestId, accept) {
       if (!sb) return false;

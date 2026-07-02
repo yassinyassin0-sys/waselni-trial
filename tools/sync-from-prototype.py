@@ -19,8 +19,12 @@ import sys, os, re
 PROT  = "/Users/yassinyassin/Documents/Business/Businesses/Carpool-ParkingShare/App /Prototype/HTML/design/screens"
 TRIAL = "/Users/yassinyassin/Documents/Business/Businesses/Carpool-ParkingShare/App /Prototype/LiveTrial"
 
+# Load order matters: taxonomy → matching → data → trial
+# (matching.js captures window.WaselniTaxonomy at load; data.js uses window.WaselniMatching).
 INCLUDES = ("  <script src=\"config.js\"></script>\n"
             "  <script src=\"https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2\"></script>\n"
+            "  <script src=\"waselni-taxonomy.js\"></script>\n"
+            "  <script src=\"waselni-matching.js\"></script>\n"
             "  <script src=\"waselni-data.js\"></script>\n"
             "  <script src=\"waselni-trial.js\"></script>\n")
 
