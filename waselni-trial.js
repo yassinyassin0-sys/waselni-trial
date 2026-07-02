@@ -339,7 +339,9 @@
     });
   }
 
-  // find-your-people: SEED "who to meet" from the user's sector (Yassin's Excel seed; learned layer = later)
+  // find-your-people: SEED (Yassin's Excel) + LEARNED (real picks) "who to meet".
+  // Never a preset: seed is a curated starting point; learned surfaces real demand
+  // (≥threshold% of a sector's users picked a target). The user edits freely.
   if (path === 'waselni-find-your-people.html') {
     whenReady(function () {
       try {
@@ -348,19 +350,31 @@
         if (!grid || typeof window.toggleChip !== 'function') return;
         var prof = {}; try { prof = JSON.parse(LS.getItem('waselni_profile') || '{}'); } catch (e) {}
         var job = (prof.jobTitles && prof.jobTitles[0]) || '';
+        var sector = T.familyOf(job);
+        var CAP = 10, shown = {};
+        var addChip = function (label) {                                // dedupe; never touches existing chips/selection
+          if (!label || shown[label]) return;
+          if (grid.querySelectorAll('.chip').length >= CAP) return;
+          shown[label] = true;
+          var chip = document.createElement('div');
+          chip.className = 'chip';
+          chip.textContent = label;
+          chip.onclick = function () { window.toggleChip(label, chip); };
+          grid.appendChild(chip);
+        };
         var seed = T.suggestedFor(job);
-        if (!seed.length) {                                              // free-typed / unknown sector → a broad UAE default
+        if (!seed.length) {                                             // free-typed / unknown sector → a broad UAE default
           seed = ['Banking, Finance & Wealth', 'Real Estate & Property', 'Consulting, Legal & Professional Services',
                   'Technology, Fintech & Web3', 'Government & Public Sector', 'Media, Marketing & Creative'];
         }
         grid.innerHTML = '';
-        seed.slice(0, 10).forEach(function (s) {
-          var chip = document.createElement('div');
-          chip.className = 'chip';
-          chip.textContent = s;
-          chip.onclick = function () { window.toggleChip(s, chip); };
-          grid.appendChild(chip);
-        });
+        seed.forEach(addChip);                                          // curated seed first (synchronous)
+        // learned layer — appended when it returns, so it never clobbers seed chips or a selection in progress
+        if (sector && window.WaselniData && WaselniData.ready && typeof WaselniData.learnedAudience === 'function') {
+          WaselniData.learnedAudience(sector).then(function (learned) {
+            (learned || []).forEach(addChip);
+          }, function () {});
+        }
       } catch (e) {}
     });
   }

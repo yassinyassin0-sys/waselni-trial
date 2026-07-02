@@ -131,6 +131,30 @@
       }).sort((a, b) => b._score - a._score);
     },
 
+    /* Learned "who to meet": among trial users in the SAME sector, which targets
+       have been picked by ≥threshold% (and ≥floor) of them? Surfaces real demand
+       (e.g. many of one role keep picking another) as extra suggested chips.
+       Returns the raw picks (sector or role, as users chose them), popular first. */
+    async learnedAudience(sector) {
+      const T = window.WaselniTaxonomy;
+      if (!sb || !T || !sector) return [];
+      const tune = T.SUGGESTION_TUNING || { thresholdPct: 30, minPicks: 2 };
+      const people = await this.getPeople();                       // excludes me; person shape (.tags, .audience)
+      const inSector = people.filter(p => {
+        const job = (p.tags && p.tags[0]) || '';
+        return T.familyOf(job) === sector && (p.audience || []).length;
+      });
+      const base = inSector.length;
+      if (base < tune.minPicks) return [];                          // too little signal to learn from yet
+      const tally = {};
+      inSector.forEach(p => {
+        new Set(p.audience || []).forEach(t => { tally[t] = (tally[t] || 0) + 1; });   // dedupe within a user
+      });
+      return Object.keys(tally)
+        .filter(t => tally[t] >= tune.minPicks && (tally[t] / base) * 100 >= tune.thresholdPct)
+        .sort((a, b) => tally[b] - tally[a]);
+    },
+
     /* live updates: cb() fires whenever the people pool changes */
     onPeopleChange(cb) {
       if (!sb) return;

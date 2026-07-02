@@ -60,6 +60,8 @@
     "Luxury Retail & Fashion": ["Media, Marketing & Creative", "Hospitality & Tourism", "Real Estate & Property", "Banking, Finance & Wealth"],
   };
 
+  const SUGGESTION_TUNING = {"thresholdPct": 30, "minPicks": 2};
+
   /* ---- reverse indexes (normalised: lowercased + trimmed) ------------- */
   const norm = s => (s || '').toString().trim().toLowerCase();
   const PROF_TO_FAMILY = {}, INT_TO_CATEGORY = {}, FAMILY_BY_NORM = {};
@@ -68,7 +70,7 @@
   const singularise = s => norm(s).replace(/ies$/, 'y').replace(/s$/, '');
 
   const WaselniTaxonomy = {
-    CAREER_FAMILIES, INTEREST_CATEGORIES, SUGGESTED_PEOPLE,
+    CAREER_FAMILIES, INTEREST_CATEGORIES, SUGGESTED_PEOPLE, SUGGESTION_TUNING,
 
     /* flat, sorted list of every job title across all sectors (onboarding search) */
     allProfessions() {

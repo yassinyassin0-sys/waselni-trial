@@ -35,6 +35,24 @@ def read_pairs(ws, sep="·"):
 
 suggested = read_pairs(wb["Suggested people to meet"])
 
+def read_kv(ws):
+    """key-value tab: col A = setting name, col B = value."""
+    kv = {}
+    for r in range(2, ws.max_row + 1):
+        k, v = ws.cell(r, 1).value, ws.cell(r, 2).value
+        if k is not None and v is not None: kv[str(k).strip()] = v
+    return kv
+
+_weights = read_kv(wb["Scoring weights"])
+def _as_pct(x):                      # "30%" | 0.3 | 30  → 30
+    s = str(x).strip().replace("%", "")
+    f = float(s)
+    return int(round(f * 100)) if f <= 1 else int(round(f))
+tuning = {
+    "thresholdPct": _as_pct(_weights.get("Suggestion threshold (% of a role)", 30)),
+    "minPicks":     int(float(str(_weights.get("Suggestion minimum picks (floor)", 2)))),
+}
+
 def js_obj(d):
     return "{\n" + "\n".join(
         "    " + json.dumps(k, ensure_ascii=False) + ": " + json.dumps(v, ensure_ascii=False) + ","
@@ -49,7 +67,7 @@ HELPERS = r"""
   const singularise = s => norm(s).replace(/ies$/, 'y').replace(/s$/, '');
 
   const WaselniTaxonomy = {
-    CAREER_FAMILIES, INTEREST_CATEGORIES, SUGGESTED_PEOPLE,
+    CAREER_FAMILIES, INTEREST_CATEGORIES, SUGGESTED_PEOPLE, SUGGESTION_TUNING,
 
     /* flat, sorted list of every job title across all sectors (onboarding search) */
     allProfessions() {
@@ -123,6 +141,8 @@ out = ("""/* ===================================================================
   const INTEREST_CATEGORIES = """ + js_obj(categories) + """;
 
   const SUGGESTED_PEOPLE = """ + js_obj(suggested) + """;
+
+  const SUGGESTION_TUNING = """ + json.dumps(tuning) + """;
 """ + HELPERS)
 
 open(JS, "w", encoding="utf-8").write(out)
