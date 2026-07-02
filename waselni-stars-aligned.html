@@ -1,0 +1,992 @@
+<!DOCTYPE html>
+<!-- saved from url=(0065)file:///Users/yassinyassin/Downloads/waselni-stars-aligned_2.html -->
+<html lang="en"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>waselni-stars-aligned</title>
+<link rel="preconnect" href="https://fonts.googleapis.com/">
+<link href="file:///Users/yassinyassin/Downloads/Waselni%20%E2%80%94%20Stars%20Aligned_files/css2" rel="stylesheet">
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  background: #0A0810;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  gap: 40px;
+  padding: 48px 24px 80px;
+  min-height: 100vh;
+  flex-wrap: wrap;
+  font-family: 'DM Sans', sans-serif;
+}
+
+.col {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+}
+
+.phone-label {
+  font-size: 9px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: rgba(255,255,255,0.18);
+  font-weight: 400;
+}
+
+.phone {
+  width: 402px;
+  height: 874px;
+  border-radius: 52px;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  flex-shrink: 0;
+}
+
+/* ── Locked status bar — fixed to phone, never moves ── */
+.statusbar {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 62px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0;
+  z-index: 100;
+  margin-top: 8px;
+  pointer-events: none;
+}
+
+.di {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 126px;
+  height: 37px;
+  background: #000;
+  border-radius: 20px;
+  z-index: 20;
+}
+
+.sb-zone {
+  width: 138px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.sb-mid { width: 126px; flex-shrink: 0; }
+
+.sb-time {
+  font-size: 15px;
+  font-weight: 600;
+  letter-spacing: -0.3px;
+}
+
+.sb-icons { display: flex; align-items: center; gap: 7px; }
+
+/* ── Top zone — night sky with sunrise gradient ── */
+.top-zone {
+  background: linear-gradient(180deg, #0A0818 0%, #140E2A 35%, #1E1240 65%, #2A1545 100%);
+  padding: 82px 32px 36px;
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  position: relative;
+  overflow: visible;
+  z-index: 2;
+}
+
+/* Ensure divider sits below the top-zone without clipping */
+.divider {
+  width: 100%;
+  height: 0.5px;
+  background: rgba(160,140,255,0.15);
+  flex-shrink: 0;
+  position: relative;
+  z-index: 1;
+}
+
+/* Static background stars */
+.bg-star {
+  position: absolute;
+  border-radius: 50%;
+  background: rgba(255,240,190,0.45);
+  pointer-events: none;
+}
+
+.eyebrow-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  margin-bottom: 28px;
+  position: relative;
+  z-index: 2;
+}
+
+.eyebrow {
+  font-size: 10px;
+  letter-spacing: 0.13em;
+  text-transform: uppercase;
+  color: rgba(220,205,255,0.6);
+  font-weight: 400;
+}
+
+.skip-all {
+  font-size: 11px;
+  font-weight: 400;
+  color: rgba(220,205,255,0.6);
+  background: rgba(160,140,255,0.1);
+  border: 0.5px solid rgba(160,140,255,0.3);
+  border-radius: 100px;
+  padding: 6px 14px;
+  cursor: pointer;
+  letter-spacing: 0.03em;
+}
+
+/* ── Passenger stack — circles are stars ── */
+.passenger-stack {
+  position: relative;
+  height: 130px;
+  width: 100%;
+  margin-bottom: 16px;
+  z-index: 2;
+}
+
+/* Primary circle — earthy sand, like a warm star */
+.circle-primary {
+  width: 128px;
+  height: 128px;
+  border-radius: 50%;
+  background: #F0E8D5;
+  border: 1.5px solid rgba(240,232,213,0.3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'Instrument Serif', serif;
+  font-style: italic;
+  font-size: 48px;
+  color: #18102E;
+  position: absolute;
+  left: 50%;
+  bottom: 0;
+  transform: translateX(-50%);
+  z-index: 3;
+}
+
+/* Secondary circles — smaller, slightly more muted earthy sand */
+.circle-secondary {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: #E8DFC8;
+  border: 1px solid rgba(240,232,213,0.2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'Instrument Serif', serif;
+  font-style: italic;
+  font-size: 15px;
+  color: rgba(24,16,46,0.55);
+  position: absolute;
+  left: calc(50% + 50px);
+  bottom: 0;
+  z-index: 2;
+  transition: left 0.6s cubic-bezier(0.15,1,0.3,1), opacity 0.3s ease;
+}
+
+.circle-tertiary {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: #DDD4BC;
+  border: 1px solid rgba(240,232,213,0.15);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'Instrument Serif', serif;
+  font-style: italic;
+  font-size: 15px;
+  color: rgba(24,16,46,0.4);
+  position: absolute;
+  left: calc(50% + 86px);
+  bottom: 0;
+  z-index: 1;
+  transition: left 0.6s cubic-bezier(0.15,1,0.3,1), opacity 0.3s ease;
+}
+
+.scroll-hint {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  width: 100%;
+  margin-bottom: 16px;
+  position: relative;
+  z-index: 2;
+}
+
+.scroll-hint-text {
+  font-size: 9px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: rgba(220,205,255,0.6);
+  font-weight: 400;
+}
+
+.scroll-dots { display: flex; gap: 4px; align-items: center; }
+.sdot { border-radius: 50%; background: rgba(220,205,255,0.3); }
+.sdot-active { width: 14px; height: 5px; border-radius: 3px; background: rgba(220,205,255,0.6); }
+.sdot-sm { width: 5px; height: 5px; }
+
+.person-name {
+  font-family: 'Instrument Serif', serif;
+  font-size: 36px;
+  font-style: italic;
+  color: rgba(250,240,215,0.92);
+  line-height: 1.0;
+  letter-spacing: -0.01em;
+  margin-bottom: 5px;
+  position: relative;
+  z-index: 2;
+}
+
+.person-role {
+  font-size: 13px;
+  color: rgba(220,205,255,0.6);
+  font-weight: 300;
+  letter-spacing: 0.01em;
+  position: relative;
+  z-index: 2;
+}
+
+.divider {
+  width: 100%;
+  height: 0.5px;
+  background: rgba(160,140,255,0.15);
+  flex-shrink: 0;
+}
+
+/* ── Bottom zone — earthy tones ── */
+.bottom-zone {
+  flex: 1;
+  background: #F0E8D5;
+  padding: 26px 32px 54px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  position: relative;
+}
+
+.shared-label {
+  font-size: 9px;
+  letter-spacing: 0.13em;
+  text-transform: uppercase;
+  color: rgba(42,26,4,0.75);
+  font-weight: 400;
+  margin-bottom: 12px;
+}
+
+.tags { display: flex; flex-wrap: wrap; gap: 7px; }
+
+.tag {
+  font-size: 12px;
+  padding: 6px 14px;
+  border-radius: 100px;
+  font-weight: 400;
+  letter-spacing: 0.01em;
+}
+
+.tag-career {
+  background: rgba(42,26,4,0.1);
+  color: rgba(42,26,4,0.75);
+}
+
+.tag-interest {
+  background: rgba(42,26,4,0.06);
+  border: 0.5px solid rgba(42,26,4,0.16);
+  color: rgba(42,26,4,0.75);
+}
+
+/* ── Button cluster ── */
+.btn-cluster {
+  display: flex;
+  flex-direction: row;
+  align-items: flex-end;
+  justify-content: space-between;
+  margin-right: -32px;
+  margin-bottom: 44px;
+}
+
+.btn-later {
+  font-size: 13px;
+  color: rgba(42,26,4,0.75);
+  background: none;
+  border: none;
+  padding: 0 0 0 20px;
+  height: 80px;
+  margin-bottom: 26px;
+  cursor: pointer;
+  font-weight: 300;
+  letter-spacing: 0.02em;
+  font-family: 'DM Sans', sans-serif;
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+.btn-connect-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 8px;
+}
+
+.btn-connect {
+  height: 80px;
+  width: 200px;
+  border-radius: 100px 0 0 100px;
+  background: #3D1E5E;
+  border: none;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 18px;
+  font-weight: 500;
+  color: #F0E8D5;
+  cursor: pointer;
+  letter-spacing: 0.01em;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: opacity 0.15s;
+}
+
+.btn-connect:active { opacity: 0.8; }
+
+.micro-copy {
+  font-size: 12px;
+  color: rgba(42,26,4,0.75);
+  font-weight: 300;
+  letter-spacing: 0.02em;
+  text-align: center;
+  width: 200px;
+  margin-top: 2px;
+  font-family: 'DM Sans', sans-serif;
+}
+
+.home-indicator {
+  position: absolute;
+  bottom: 10px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 134px;
+  height: 5px;
+  background: rgba(42,26,4,0.14);
+  border-radius: 3px;
+}
+
+/* Flash overlay */
+.flash {
+  position: absolute;
+  inset: 0;
+  z-index: 20;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.25s ease;
+  border-radius: 52px;
+}
+.flash.connect { background: rgba(61,30,94,0.35); }
+.flash.later   { background: rgba(240,232,213,0.2); }
+.flash.show    { opacity: 1; }
+
+/* Dir indicator */
+.dir-indicator {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 10px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  font-weight: 500;
+  opacity: 0;
+  transition: opacity 0.15s ease;
+  pointer-events: none;
+  z-index: 5;
+  font-family: 'DM Sans', sans-serif;
+}
+
+.dir-left { left: 24px; color: rgba(160,140,200,0.7); }
+.dir-right { display: none; }
+
+/* Swipe card */
+.swipe-card {
+  position: absolute;
+  left: 50%;
+  bottom: 0;
+  transform: translateX(-50%);
+  z-index: 3;
+  cursor: grab;
+  touch-action: none;
+}
+.swipe-card:active { cursor: grabbing; }
+
+/* Summary / feedback screen — hidden off bottom, fast start so appears to rise from divider */
+.summary-screen {
+  position: absolute;
+  inset: 0;
+  background: #F0E8D5;
+  border-radius: 52px;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  padding: 0;
+  z-index: 30;
+  opacity: 1;
+  pointer-events: none;
+  transform: translateY(100%);
+  transition: transform 0.55s cubic-bezier(0.32,0,0.2,1);
+}
+.summary-screen.visible {
+  pointer-events: all;
+  transform: translateY(0%);
+}
+
+.feedback-inner {
+  flex: 1;
+  padding: 24px 32px 54px;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.summary-eyebrow {
+  font-family: 'DM Sans', sans-serif;
+  font-size: 10px;
+  letter-spacing: 0.13em;
+  text-transform: uppercase;
+  color: rgba(42,26,4,0.75);
+  font-weight: 400;
+  margin-bottom: 28px;
+}
+
+.feedback-question {
+  font-family: 'Instrument Serif', serif;
+  font-size: 38px;
+  font-style: italic;
+  color: #18102E;
+  line-height: 1.1;
+  letter-spacing: -0.01em;
+  margin-bottom: 36px;
+}
+
+.feedback-options { display: flex; flex-direction: column; gap: 12px; width: 100%; }
+
+.feedback-btn {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  width: 100%;
+  padding: 20px 24px;
+  border-radius: 16px;
+  border: 0.5px solid rgba(42,26,4,0.12);
+  background: rgba(42,26,4,0.04);
+  cursor: pointer;
+  font-family: 'DM Sans', sans-serif;
+  transition: background 0.15s;
+}
+.feedback-btn:active { background: rgba(42,26,4,0.08); }
+
+.feedback-icon {
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.feedback-label {
+  font-size: 15px;
+  font-weight: 400;
+  color: rgba(42,26,4,0.75);
+  letter-spacing: 0.01em;
+}
+
+.report-form { width: 100%; display: none; flex-direction: column; gap: 12px; }
+.report-form.visible { display: flex; }
+
+.report-label {
+  font-family: 'DM Sans', sans-serif;
+  font-size: 11px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: rgba(42,26,4,0.75);
+  font-weight: 400;
+  margin-bottom: 2px;
+}
+
+.report-options { display: flex; flex-wrap: wrap; gap: 8px; }
+
+.report-option {
+  font-family: 'DM Sans', sans-serif;
+  font-size: 12px;
+  font-weight: 400;
+  padding: 7px 14px;
+  border-radius: 100px;
+  border: 0.5px solid rgba(42,26,4,0.15);
+  background: transparent;
+  color: rgba(42,26,4,0.55);
+  cursor: pointer;
+  letter-spacing: 0.01em;
+  transition: background 0.15s, color 0.15s;
+}
+.report-option.selected {
+  background: rgba(42,26,4,0.08);
+  border-color: rgba(42,26,4,0.3);
+  color: rgba(42,26,4,0.85);
+}
+
+.report-textarea {
+  width: 100%;
+  height: 160px;
+  border-radius: 12px;
+  border: 0.5px solid rgba(42,26,4,0.15);
+  background: rgba(42,26,4,0.03);
+  font-family: 'DM Sans', sans-serif;
+  font-size: 13px;
+  font-weight: 300;
+  color: rgba(42,26,4,0.75);
+  padding: 12px 14px;
+  resize: none;
+  outline: none;
+  line-height: 1.6;
+}
+.report-textarea::placeholder { color: rgba(42,26,4,0.25); }
+
+.report-note {
+  font-family: 'DM Sans', sans-serif;
+  font-size: 11px;
+  color: rgba(42,26,4,0.45);
+  font-weight: 300;
+  line-height: 1.5;
+  letter-spacing: 0.01em;
+}
+
+.report-btns { display: flex; gap: 10px; align-items: center; }
+
+.report-cancel {
+  font-family: 'DM Sans', sans-serif;
+  font-size: 13px;
+  font-weight: 300;
+  color: rgba(42,26,4,0.4);
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0 4px;
+  letter-spacing: 0.01em;
+}
+
+.report-submit {
+  flex: 1;
+  height: 44px;
+  border-radius: 12px;
+  background: #3D1E5E;
+  border: none;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 14px;
+  font-weight: 500;
+  color: #F0E8D5;
+  cursor: pointer;
+  letter-spacing: 0.01em;
+}
+
+.report-submitted { display: none; padding: 20px 0; }
+.report-submitted.visible { display: block; }
+
+.submitted-text {
+  font-family: 'DM Sans', sans-serif;
+  font-size: 15px;
+  color: rgba(42,26,4,0.55);
+  font-weight: 300;
+  line-height: 1.7;
+  letter-spacing: 0.01em;
+}
+</style>
+  <script src="config.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="waselni-data.js"></script>
+</head>
+<body>
+
+<div class="col">
+<div class="phone" id="phone">
+
+  <div class="flash connect" id="flash"></div>
+  <div class="dir-indicator dir-left" id="dirLeft">Decide later</div>
+  <div class="dir-indicator dir-right" id="dirRight"></div>
+
+  <!-- Status bar — fixed, never moves -->
+  <div class="statusbar" style="background:transparent;">
+    <div class="di"></div>
+    <div class="sb-zone"><span class="sb-time" style="color: rgba(0, 0, 0, 0.85);">9:41</span></div>
+    <div class="sb-mid"></div>
+    <div class="sb-zone">
+      <div class="sb-icons">
+        <svg width="17" height="12" viewBox="0 0 17 12" fill="none"><rect x="0" y="8" width="3" height="4" rx="0.5" class="sb-icon-fill" fill="rgba(0,0,0,0.85)"></rect><rect x="4.5" y="5.5" width="3" height="6.5" rx="0.5" class="sb-icon-fill" fill="rgba(0,0,0,0.85)"></rect><rect x="9" y="3" width="3" height="9" rx="0.5" class="sb-icon-fill" fill="rgba(0,0,0,0.85)"></rect><rect x="13.5" y="0" width="3" height="12" rx="0.5" class="sb-icon-fill" fill="rgba(0,0,0,0.85)"></rect></svg>
+        <svg width="16" height="12" viewBox="0 0 16 12" fill="none"><path d="M8 9.5C8.69 9.5 9.25 10.06 9.25 10.75S8.69 12 8 12 6.75 11.44 6.75 10.75 7.31 9.5 8 9.5z" class="sb-icon-fill" fill="rgba(0,0,0,0.85)"></path><path d="M8 6.5C9.38 6.5 10.63 7.06 11.54 7.97L12.6 6.9C11.4 5.72 9.78 5 8 5s-3.4.72-4.6 1.9l1.06 1.07C5.37 7.06 6.62 6.5 8 6.5z" class="sb-icon-fill" fill="rgba(0,0,0,0.85)"></path><path d="M8 3C10.42 3 12.62 4 14.24 5.62L15.3 4.55C13.39 2.66 10.82 1.5 8 1.5S2.61 2.66.7 4.55l1.06 1.07C3.38 4 5.58 3 8 3z" class="sb-icon-fill" fill="rgba(0,0,0,0.85)"></path></svg>
+        <svg width="25" height="12" viewBox="0 0 25 12" fill="none"><rect x="0.5" y="0.5" width="21" height="11" rx="3.5" class="sb-battery-stroke" stroke="rgba(0,0,0,0.35)"></rect><rect x="2" y="2" width="15" height="8" rx="2" class="sb-icon-fill" fill="rgba(0,0,0,0.85)"></rect><path d="M23 4C23.83 4.3 24.5 5.08 24.5 6S23.83 7.7 23 8V4z" class="sb-battery-nub" fill="rgba(0,0,0,0.35)"></path></svg>
+      </div>
+    </div>
+  </div>
+
+  <!-- Top zone — night sky -->
+  <div class="top-zone">
+    <!-- Background stars -->
+    <div class="bg-star" style="width:2px;height:2px;top:18px;left:38px;opacity:0.7;"></div>
+    <div class="bg-star" style="width:1.5px;height:1.5px;top:42px;right:52px;opacity:0.5;"></div>
+    <div class="bg-star" style="width:1px;height:1px;top:68px;left:88px;opacity:0.4;"></div>
+    <div class="bg-star" style="width:2px;height:2px;top:30px;right:90px;opacity:0.35;"></div>
+    <div class="bg-star" style="width:1.5px;height:1.5px;top:82px;right:34px;opacity:0.45;"></div>
+    <div class="bg-star" style="width:1px;height:1px;top:55px;left:44px;opacity:0.3;"></div>
+    <div class="bg-star" style="width:2px;height:2px;top:95px;left:160px;opacity:0.25;"></div>
+    <div class="bg-star" style="width:1px;height:1px;top:14px;right:140px;opacity:0.4;"></div>
+
+    <div class="eyebrow-row">
+      <div class="eyebrow" id="eyebrow">People you rode with</div>
+      <button class="skip-all" onclick="skipAll()">Skip all</button>
+    </div>
+
+    <div class="passenger-stack">
+      <div class="swipe-card" id="swipeCard" style="transition: none; transform: translateX(-50%); opacity: 1; filter: none;">
+        <div class="circle-primary" id="circleInitial">K</div>
+      </div>
+      <div class="circle-secondary" id="circle2" style="opacity: 1; left: calc(50% + 50px); filter: none; transition: none; width: 44px; height: 44px; font-size: 15px; z-index: 2;">A</div>
+      <div class="circle-tertiary" id="circle3" style="opacity: 1; left: calc(50% + 86px); filter: none; transition: left 0.6s cubic-bezier(0.15, 1, 0.3, 1), opacity 0.3s;">M</div>
+    </div>
+
+    <div class="scroll-hint" id="scrollHint" style="display: flex;">
+      <span class="scroll-hint-text">3 riders</span>
+      <div class="scroll-dots" id="scrollDots"><div class="sdot sdot-active"></div><div class="sdot sdot-sm"></div><div class="sdot sdot-sm"></div></div>
+    </div>
+
+    <div class="person-name" id="personName">Khalid</div>
+    <div class="person-role" id="personRole">Product Manager</div>
+  </div>
+
+  <div class="divider"></div>
+
+  <!-- Bottom zone — earthy -->
+  <div class="bottom-zone">
+    <div>
+      <div class="shared-label">In common</div>
+      <div class="tags" id="tags"><span class="tag tag-career">Product design</span><span class="tag tag-career">Startups</span><span class="tag tag-interest">Specialty coffee</span><span class="tag tag-interest">BJJ</span></div>
+    </div>
+    <div class="btn-cluster">
+      <button class="btn-later" onclick="decideLater()">Decide later</button>
+      <div class="btn-connect-wrap">
+        <button class="btn-connect" onclick="connectRider()">Connect</button>
+        <div class="micro-copy">Shares your profiles</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="home-indicator"></div>
+
+  <!-- Feedback screen -->
+  <div class="summary-screen visible" id="summaryScreen">
+
+    <!-- Locked status bar -->
+    <div class="feedback-inner" style="padding-top: 82px;">
+      <div class="summary-eyebrow">Your ride is complete</div>
+      <div class="feedback-question">How was<br>your ride?</div>
+
+      <div class="feedback-options" id="feedbackOptions" style="display: flex; opacity: 1;">
+        <button class="feedback-btn" onclick="thumbsUp()">
+          <div class="feedback-icon">
+            <svg width="28" height="28" viewBox="0 0 28 28" fill="none">
+              <path d="M14 2L17.09 9.26L25 10.27L19.5 15.64L20.9 23.5L14 19.77L7.1 23.5L8.5 15.64L3 10.27L10.91 9.26L14 2Z" stroke="rgba(42,26,4,0.65)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path>
+            </svg>
+          </div>
+          <span class="feedback-label">Good ride</span>
+        </button>
+        <button class="feedback-btn" onclick="reportConcern()">
+          <div class="feedback-icon">
+            <svg width="28" height="28" viewBox="0 0 28 28" fill="none">
+              <path d="M14 2L24 6.5V13C24 18.5 19.5 23.5 14 26C8.5 23.5 4 18.5 4 13V6.5L14 2Z" stroke="rgba(42,26,4,0.65)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path>
+              <path d="M14 10v5" stroke="rgba(42,26,4,0.65)" stroke-width="1.5" stroke-linecap="round"></path>
+              <circle cx="14" cy="18.5" r="1" fill="rgba(42,26,4,0.65)"></circle>
+            </svg>
+          </div>
+          <span class="feedback-label">Report a concern</span>
+        </button>
+      </div>
+
+      <div class="report-form" id="reportForm">
+        <div class="report-label">What happened?</div>
+        <div class="report-options">
+          <button class="report-option" onclick="selectReport(this)">I felt unsafe</button>
+          <button class="report-option" onclick="selectReport(this)">Inappropriate behaviour</button>
+          <button class="report-option" onclick="selectReport(this)">Harassment</button>
+          <button class="report-option" onclick="selectReport(this)">Something else</button>
+        </div>
+        <textarea class="report-textarea" id="reportText" placeholder="Tell us what happened. This is private and only seen by Waselni."></textarea>
+        <div class="report-note">Your report is confidential. We take all concerns seriously.</div>
+        <div class="report-btns">
+          <button class="report-cancel" onclick="cancelReport()">Cancel</button>
+          <button class="report-submit" onclick="submitReport()">Submit</button>
+        </div>
+      </div>
+
+      <div class="report-submitted" id="reportSubmitted">
+        <div class="submitted-text">Thank you for letting us know.<br>We'll look into this privately.</div>
+      </div>
+    </div>
+
+    <div style="position:absolute;bottom:10px;left:50%;transform:translateX(-50%);width:134px;height:5px;background:rgba(42,26,4,0.14);border-radius:3px;"></div>
+  </div>
+
+</div>
+<div class="phone-label">Night sky · Earth · Stars aligned</div>
+</div>
+
+<script>
+const riders = [
+  { initial:'K', name:'Khalid', role:'Product Manager', tags:[{text:'Product design',type:'career'},{text:'Startups',type:'career'},{text:'Specialty coffee',type:'interest'},{text:'BJJ',type:'interest'}] },
+  { initial:'A', name:'Ahmed', role:'Software Engineer', tags:[{text:'Engineering',type:'career'},{text:'Gaming',type:'interest'},{text:'Mountain biking',type:'interest'}] },
+  { initial:'M', name:'Maya',  role:'UX Researcher',    tags:[{text:'Design',type:'career'},{text:'User research',type:'career'},{text:'Specialty coffee',type:'interest'}] }
+];
+
+let current=0, decisions=[], startX=0, curX=0, drag=false;
+const THRESH=90;
+const card=document.getElementById('swipeCard');
+const flash=document.getElementById('flash');
+const dirL=document.getElementById('dirLeft');
+const circle2=document.getElementById('circle2');
+const circle3=document.getElementById('circle3');
+const scrollHint=document.getElementById('scrollHint');
+
+function renderRider(i){
+  const r=riders[i];
+  document.getElementById('circleInitial').textContent=r.initial;
+  document.getElementById('personName').textContent=r.name;
+  document.getElementById('personRole').textContent=r.role;
+  document.getElementById('eyebrow').textContent=riders.length===1?'Someone you rode with':'People you rode with';
+  document.getElementById('tags').innerHTML=r.tags.map(t=>`<span class="tag tag-${t.type}">${t.text}</span>`).join('');
+  const dots=document.getElementById('scrollDots');
+  dots.innerHTML=riders.map((_,j)=>{
+    if(decisions[j]!==undefined) return '';
+    if(j===i) return '<div class="sdot sdot-active"></div>';
+    return '<div class="sdot sdot-sm"></div>';
+  }).join('');
+  const rem=riders.length-i-1;
+  const remaining = riders.length - i;
+  circle2.style.opacity=rem>=1?'1':'0';
+  circle3.style.opacity=rem>=2?'1':'0';
+  circle2.style.left='calc(50% + 50px)';
+  circle3.style.left='calc(50% + 86px)';
+  if(rem>=1) circle2.textContent=riders[i+1]?.initial||'';
+  if(rem>=2) circle3.textContent=riders[i+2]?.initial||'';
+  const riderWord = remaining === 1 ? 'rider' : 'riders';
+  document.querySelector('.scroll-hint-text').textContent = `${remaining} ${riderWord}`;
+  scrollHint.style.display=riders.length>1?'flex':'none';
+  card.style.transition='none';
+  card.style.transform='translateX(-50%)';
+  card.style.opacity='1';
+  card.style.filter='none';
+}
+
+function decide(type){
+  decisions[current]=type;
+  const isC=type==='connect';
+  flash.className='flash '+(isC?'connect':'later');
+  requestAnimationFrame(()=>flash.classList.add('show'));
+  setTimeout(()=>flash.classList.remove('show'),350);
+  const exitX=isC?420:-420;
+  const exitScale=isC?1.4:0.4;
+  card.style.transition='transform 0.35s cubic-bezier(0.4,0,0.2,1),opacity 0.28s ease';
+  card.style.transform=`translateX(calc(-50% + ${exitX}px)) rotate(${isC?12:-12}deg) scale(${exitScale})`;
+  card.style.opacity='0';
+  setTimeout(()=>{
+    card.style.transition='none';
+    current++;
+    if(current<riders.length){
+      const r=riders[current];
+      const c2rect=circle2.getBoundingClientRect();
+      const stackRect=document.querySelector('.passenger-stack').getBoundingClientRect();
+      card.style.opacity='0';
+      card.style.transform='translateX(-50%) scale(1)';
+      circle2.style.filter='none';
+      circle3.style.filter='none';
+      circle2.textContent=r.initial;
+      const primaryLeft=stackRect.width/2-64;
+      const c2startLeft=c2rect.left-stackRect.left;
+      circle2.style.transition='none';
+      circle2.style.filter='none';
+      circle2.style.left=c2startLeft+'px';
+      circle2.style.width='44px';
+      circle2.style.height='44px';
+      circle2.style.fontSize='15px';
+      circle2.style.zIndex='10';
+      circle2.getBoundingClientRect();
+      circle2.style.transition='left 0.6s cubic-bezier(0.15,1,0.3,1),width 0.6s cubic-bezier(0.15,1,0.3,1),height 0.6s cubic-bezier(0.15,1,0.3,1),font-size 0.55s cubic-bezier(0.15,1,0.3,1)';
+      circle2.style.left=primaryLeft+'px';
+      circle2.style.width='128px';
+      circle2.style.height='128px';
+      circle2.style.fontSize='48px';
+      setTimeout(()=>{
+        circle3.style.transition='left 0.6s cubic-bezier(0.15,1,0.3,1),opacity 0.3s ease';
+        circle3.style.left='calc(50% + 50px)';
+      },180);
+      setTimeout(()=>{
+        document.getElementById('circleInitial').textContent=r.initial;
+        circle2.style.transition='none';
+        circle2.style.filter='none';
+        circle2.style.left='calc(50% + 50px)';
+        circle2.style.width='44px';
+        circle2.style.height='44px';
+        circle2.style.fontSize='15px';
+        circle2.style.zIndex='2';
+        const rem=riders.length-current-1;
+        if(rem>=1){ circle2.textContent=riders[current+1]?.initial||''; circle2.style.opacity='1'; }
+        else circle2.style.opacity='0';
+        if(rem>=2){
+          circle3.style.opacity='0';
+          circle3.style.left='calc(50% + 86px)';
+          setTimeout(()=>{ circle3.textContent=riders[current+2]?.initial||''; circle3.style.filter='none'; circle3.style.transition='opacity 0.3s ease'; circle3.style.opacity='1'; },220);
+        } else circle3.style.opacity='0';
+        card.style.filter='none';
+        card.style.opacity='1';
+        document.getElementById('personName').textContent=r.name;
+        document.getElementById('personRole').textContent=r.role;
+        document.getElementById('tags').innerHTML=r.tags.map(t=>`<span class="tag tag-${t.type}">${t.text}</span>`).join('');
+        document.getElementById('eyebrow').textContent=riders.length===1?'Someone you rode with':'People you rode with';
+        const dots=document.getElementById('scrollDots');
+        dots.innerHTML=riders.map((_,i)=>{
+          if(decisions[i]!==undefined) return '';
+          if(i===current) return '<div class="sdot sdot-active"></div>';
+          return '<div class="sdot sdot-sm"></div>';
+        }).join('');
+        scrollHint.style.display=riders.length>1?'flex':'none';
+        const remCount = riders.length - current;
+        document.querySelector('.scroll-hint-text').textContent = `${remCount} ${remCount===1?'rider':'riders'}`;
+      },420);
+    } else showSummary();
+  },320);
+}
+
+function connectRider(){ decide('connect'); }
+function decideLater(){ decide('later'); }
+function skipAll(){ riders.forEach((_,i)=>{ if(decisions[i]===undefined) decisions[i]='later'; }); showSummary(); }
+
+function showSummary(){
+  document.getElementById('feedbackOptions').style.display='flex';
+  document.getElementById('feedbackOptions').style.opacity='1';
+  document.getElementById('reportForm').classList.remove('visible');
+  document.getElementById('reportSubmitted').classList.remove('visible');
+  document.getElementById('summaryScreen').classList.add('visible');
+  // Switch status bar to dark icons for light background
+  setTimeout(()=> setStatusBarDark(), 300);
+}
+
+function setStatusBarDark(){
+  document.querySelector('.sb-time').style.color='rgba(0,0,0,0.85)';
+  document.querySelectorAll('.sb-icon-fill').forEach(el=>el.setAttribute('fill','rgba(0,0,0,0.85)'));
+  document.querySelector('.sb-battery-stroke')?.setAttribute('stroke','rgba(0,0,0,0.35)');
+  document.querySelector('.sb-battery-nub')?.setAttribute('fill','rgba(0,0,0,0.35)');
+}
+
+function setStatusBarLight(){
+  document.querySelector('.sb-time').style.color='rgba(255,255,255,0.92)';
+  document.querySelectorAll('.sb-icon-fill').forEach(el=>el.setAttribute('fill','rgba(255,255,255,0.92)'));
+  document.querySelector('.sb-battery-stroke')?.setAttribute('stroke','rgba(255,255,255,0.35)');
+  document.querySelector('.sb-battery-nub')?.setAttribute('fill','rgba(255,255,255,0.35)');
+}
+
+function thumbsUp(){
+  const screen = document.getElementById('summaryScreen');
+  screen.classList.remove('visible');
+  setStatusBarLight();
+  setTimeout(()=>{
+    current=0; decisions=[];
+    renderRider(0);
+  }, 650);
+}
+
+function reportConcern(){
+  document.getElementById('feedbackOptions').style.display='none';
+  document.getElementById('reportForm').classList.add('visible');
+}
+
+function selectReport(el){
+  el.classList.toggle('selected');
+}
+
+function cancelReport(){
+  document.getElementById('reportForm').classList.remove('visible');
+  document.getElementById('feedbackOptions').style.display='flex';
+}
+
+function submitReport(){
+  document.getElementById('reportForm').classList.remove('visible');
+  document.getElementById('reportSubmitted').classList.add('visible');
+  setTimeout(()=>{
+    const screen = document.getElementById('summaryScreen');
+    screen.classList.remove('visible');
+    setTimeout(()=>{
+      document.getElementById('reportSubmitted').classList.remove('visible');
+      document.getElementById('feedbackOptions').style.display='flex';
+      document.getElementById('reportText').value='';
+      document.querySelectorAll('.report-option').forEach(o=>o.classList.remove('selected'));
+      current=0; decisions=[];
+      renderRider(0);
+    }, 650);
+  }, 2000);
+}
+
+function onStart(x){ drag=true; startX=x; card.style.transition='none'; }
+function onMove(x){
+  if(!drag) return;
+  curX=x-startX;
+  const ratio=Math.min(Math.abs(curX)/THRESH,1);
+  const scale=curX>0?1+(ratio*0.35):1-(ratio*0.35);
+  const blur=Math.min(Math.abs(curX)/60,3);
+  card.style.transform=`translateX(calc(-50% + ${curX}px)) rotate(${curX*0.08}deg) scale(${scale})`;
+  card.style.filter=`blur(${blur}px)`;
+  if(curX<-20){ dirL.style.opacity=ratio; }
+  else { dirL.style.opacity='0'; }
+}
+function onEnd(){
+  if(!drag) return;
+  drag=false;
+  dirL.style.opacity='0';
+  if(curX>THRESH) decide('connect');
+  else if(curX<-THRESH) decide('later');
+  else{
+    card.style.transition='transform 0.3s cubic-bezier(0.4,0,0.2,1),filter 0.3s ease';
+    card.style.transform='translateX(-50%)';
+    card.style.filter='none';
+  }
+  curX=0;
+}
+
+card.addEventListener('mousedown',e=>onStart(e.clientX));
+window.addEventListener('mousemove',e=>{ if(drag) onMove(e.clientX); });
+window.addEventListener('mouseup',onEnd);
+card.addEventListener('touchstart',e=>onStart(e.touches[0].clientX),{passive:true});
+window.addEventListener('touchmove',e=>{ if(drag) onMove(e.touches[0].clientX); },{passive:true});
+window.addEventListener('touchend',onEnd);
+
+renderRider(0);
+</script>
+
+
+</body></html>

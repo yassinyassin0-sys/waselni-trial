@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <title>waselni-login</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600&display=swap" rel="stylesheet">
+  <style>
+    * { margin:0; padding:0; box-sizing:border-box; }
+    html, body { height:100%; width:100%; overflow:hidden; position:fixed; }
+    body { font-family:'DM Sans',sans-serif; -webkit-font-smoothing:antialiased; }
+    .page { width:100vw; height:100vh; display:flex; align-items:center; justify-content:center; background:#E8DFC8; }
+    .phone { width:402px; height:874px; border-radius:52px; overflow:hidden; position:relative; flex-shrink:0; background:#F0E8D5; display:flex; flex-direction:column; }
+    @media (max-width:430px){ .phone{ width:100vw; height:100vh; border-radius:0; } }
+    .content { flex:1; overflow:hidden; padding:88px 24px 60px; display:flex; flex-direction:column; }
+    .back-btn { width:36px; height:36px; border-radius:10px; background:rgba(42,26,4,0.07); border:none; display:flex; align-items:center; justify-content:center; cursor:pointer; margin-bottom:28px; }
+    .back-btn:active { background:rgba(42,26,4,0.12); }
+    .page-eyebrow { font-size:11px; letter-spacing:0.15em; text-transform:uppercase; color:rgba(42,26,4,0.4); margin-bottom:10px; }
+    .page-title { font-family:'Instrument Serif',serif; font-style:italic; font-size:34px; line-height:1.05; color:#18102E; margin-bottom:8px; }
+    .page-subtitle { font-size:13px; color:rgba(42,26,4,0.6); line-height:1.6; margin-bottom:30px; }
+    .field-label { font-size:11px; letter-spacing:0.1em; text-transform:uppercase; color:rgba(42,26,4,0.45); margin-bottom:8px; }
+    .text-input { width:100%; height:52px; padding:0 16px; margin-bottom:18px; border:0.5px solid rgba(42,26,4,0.15); border-radius:12px; font-family:'DM Sans',sans-serif; font-size:15px; background:rgba(42,26,4,0.03); color:#18102E; outline:none; -webkit-appearance:none; }
+    .text-input:focus { border-color:#3D1E5E; background:#fff; }
+    .text-input::placeholder { color:rgba(42,26,4,0.3); }
+    .login-error { font-size:12px; color:#B4322A; min-height:16px; margin:-8px 0 12px 2px; }
+    .login-btn { width:100%; height:52px; background:#3D1E5E; color:#F0E8D5; border:none; border-radius:14px; font-family:'DM Sans',sans-serif; font-size:15px; font-weight:500; cursor:pointer; transition:opacity 0.15s; }
+    .login-btn:active { opacity:0.85; }
+    .login-btn:disabled { opacity:0.5; pointer-events:none; }
+    .helper { font-size:12px; color:rgba(42,26,4,0.5); text-align:center; margin-top:18px; line-height:1.6; }
+    .helper span { color:#3D1E5E; font-weight:500; cursor:pointer; }
+    .home-indicator { position:absolute; bottom:10px; left:50%; transform:translateX(-50%); width:134px; height:5px; background:rgba(42,26,4,0.14); border-radius:3px; }
+  </style>
+  <script src="config.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="waselni-data.js"></script>
+</head>
+<body>
+<div class="page">
+<div class="phone">
+  <div class="content">
+    <button class="back-btn" onclick="window.location.href='index.html?signup=1'">
+      <svg width="16" height="16" viewBox="0 0 18 18" fill="none"><path d="M11 4L6 9l5 5" stroke="rgba(42,26,4,0.7)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    </button>
+    <div class="page-eyebrow">Welcome back</div>
+    <div class="page-title">Log in</div>
+    <div class="page-subtitle">Enter your first name and the 4-digit PIN you chose when you joined.</div>
+
+    <div class="field-label">First name</div>
+    <input id="firstNameInput" class="text-input" type="text" placeholder="e.g. Yassin" autocapitalize="words" autocomplete="off"
+           oninput="document.getElementById('loginError').textContent='';">
+
+    <div class="field-label">4-digit PIN</div>
+    <input id="pinInput" class="text-input" type="tel" inputmode="numeric" maxlength="4" placeholder="••••" autocomplete="off"
+           oninput="this.value=this.value.replace(/[^0-9]/g,''); document.getElementById('loginError').textContent='';"
+           onkeydown="if(event.key==='Enter')doLogin()">
+
+    <div id="loginError" class="login-error"></div>
+    <button class="login-btn" id="loginBtn" onclick="doLogin()">Log in</button>
+
+    <div class="helper">New here? <span onclick="window.location.href='index.html?signup=1'">Create an account</span></div>
+  </div>
+  <div class="home-indicator"></div>
+</div>
+</div>
+<script>
+  async function doLogin() {
+    const first = (document.getElementById('firstNameInput').value || '').trim();
+    const pin   = (document.getElementById('pinInput').value || '').trim();
+    const err   = document.getElementById('loginError');
+    const btn   = document.getElementById('loginBtn');
+    if (first.length < 2)      { err.textContent = 'Enter your first name.'; return; }
+    if (!/^\d{4}$/.test(pin))  { err.textContent = 'Enter your 4-digit PIN.'; return; }
+    if (!window.WaselniData || !WaselniData.ready) {
+      err.textContent = "Log in needs the trial backend connected. On this device you're remembered automatically.";
+      return;
+    }
+    btn.textContent = 'Logging in…'; btn.disabled = true;
+    try {
+      const me = await WaselniData.login(first, pin);
+      if (me && me.legalName) {
+        localStorage.setItem('waselni_onboarding_complete', '1');
+        window.location.replace('waselni-home.html');
+        return;
+      }
+      err.textContent = 'No account found with that first name + PIN.';
+    } catch (e) {
+      err.textContent = 'Something went wrong — please try again.';
+    }
+    btn.textContent = 'Log in'; btn.disabled = false;
+  }
+</script>
+</body>
+</html>

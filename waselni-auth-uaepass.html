@@ -1,0 +1,496 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="dark-content">
+  <title>waselni-auth-uaepass</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600&display=swap" rel="stylesheet">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    html, body { height: 100%; width: 100%; overflow: hidden; position: fixed; }
+    body { font-family: 'DM Sans', sans-serif; -webkit-font-smoothing: antialiased; }
+
+    .page {
+      width: 100vw; height: 100vh;
+      display: flex; align-items: center; justify-content: center;
+      background: #E8DFC8;
+    }
+
+    .phone {
+      width: 402px; height: 874px;
+      border-radius: 52px;
+      overflow: hidden;
+      position: relative;
+      flex-shrink: 0;
+      background: #F0E8D5;
+      display: flex;
+      flex-direction: column;
+    }
+
+    @media (max-width: 430px) {
+      .phone { width: 100vw; height: 100vh; border-radius: 0; }
+    }
+
+    /* ── Locked status bar ── */
+    .statusbar {
+      position: absolute;
+      top: 0; left: 0; right: 0; height: 54px;
+      display: flex; align-items: center; justify-content: space-between;
+      margin-top: 8px; z-index: 100; pointer-events: none;
+    }
+    .di {
+      position: absolute; top: 50%; left: 50%;
+      transform: translate(-50%,-50%);
+      width: 126px; height: 37px;
+      background: #000; border-radius: 20px; z-index: 20;
+    }
+    .sb-zone { width: 138px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+    .sb-mid { width: 126px; flex-shrink: 0; }
+    .sb-time { font-size: 15px; font-weight: 600; letter-spacing: -0.3px; color: rgba(0,0,0,0.85); }
+    .sb-icons { display: flex; align-items: center; gap: 7px; }
+
+    /* ── Content — fixed, no scroll ── */
+    .content {
+      flex: 1;
+      overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
+      padding: 82px 24px 60px;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* ── Back button ── */
+    .back-btn {
+      width: 36px; height: 36px;
+      border-radius: 10px;
+      background: rgba(42,26,4,0.07);
+      border: none;
+      display: flex; align-items: center; justify-content: center;
+      cursor: pointer;
+      margin-bottom: 20px;
+      flex-shrink: 0;
+      transition: background 0.15s;
+    }
+    .back-btn:active { background: rgba(42,26,4,0.12); }
+    .back-btn svg { width: 16px; height: 16px; }
+
+    /* ── Header ── */
+    .header {
+      margin-bottom: 20px;
+      flex-shrink: 0;
+    }
+
+    .page-eyebrow {
+      font-size: 11px;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: rgba(42,26,4,0.4);
+      font-weight: 400;
+      margin-bottom: 10px;
+    }
+
+    .page-title {
+      font-family: 'Instrument Serif', serif;
+      font-style: italic;
+      font-size: 34px;
+      line-height: 1.05;
+      letter-spacing: -0.02em;
+      color: #18102E;
+      margin-bottom: 8px;
+    }
+
+    .page-subtitle {
+      font-size: 13px;
+      font-weight: 400;
+      color: rgba(42,26,4,0.6);
+      line-height: 1.6;
+      margin-bottom: 24px;
+    }
+
+    /* ── UAE Pass card ── */
+    .uaepass-card {
+      background: linear-gradient(145deg, #00913F 0%, #006830 100%);
+      border-radius: 20px;
+      padding: 24px 24px;
+      margin-bottom: 20px;
+      flex-shrink: 0;
+      box-shadow: 0 8px 32px rgba(0,120,50,0.2);
+    }
+
+    .uaepass-header {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      margin-bottom: 14px;
+    }
+
+    .uaepass-logo {
+      width: 48px; height: 48px;
+      background: white;
+      border-radius: 14px;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.12);
+    }
+
+    .uaepass-logo-text {
+      font-size: 8px;
+      font-weight: 800;
+      color: #00843D;
+      letter-spacing: 0.05em;
+      text-align: center;
+      line-height: 1.3;
+      font-family: 'DM Sans', sans-serif;
+    }
+
+    .uaepass-label {
+      flex: 1;
+    }
+
+    .uaepass-name {
+      font-size: 18px;
+      font-weight: 600;
+      color: white;
+      letter-spacing: -0.2px;
+      margin-bottom: 2px;
+    }
+
+    .uaepass-gov {
+      font-size: 11px;
+      font-weight: 300;
+      color: rgba(255,255,255,0.65);
+      letter-spacing: 0.02em;
+    }
+
+    .uaepass-desc {
+      font-size: 12px;
+      font-weight: 300;
+      color: rgba(255,255,255,0.75);
+      line-height: 1.5;
+      margin-bottom: 18px;
+    }
+
+    .uaepass-btn {
+      width: 100%;
+      height: 48px;
+      background: white;
+      color: #00843D;
+      border: none;
+      border-radius: 12px;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 15px;
+      font-weight: 600;
+      cursor: pointer;
+      letter-spacing: 0.01em;
+      transition: opacity 0.15s;
+    }
+    .uaepass-btn:active { opacity: 0.85; }
+
+    /* ── Trial name + gender entry (replaces the government tap) ── */
+    .uaepass-input {
+      width: 100%; height: 48px;
+      background: rgba(255,255,255,0.96);
+      border: none; border-radius: 12px;
+      padding: 0 16px; margin-bottom: 10px;
+      font-family: 'DM Sans', sans-serif; font-size: 15px;
+      color: #18102E; letter-spacing: 0.01em;
+    }
+    .uaepass-input::placeholder { color: rgba(24,16,46,0.4); }
+    .uaepass-input:focus { outline: 2px solid rgba(255,255,255,0.55); }
+    .uaepass-gender { display: flex; gap: 8px; margin-bottom: 10px; }
+    .gender-opt {
+      flex: 1; height: 44px;
+      border: 1.5px solid rgba(255,255,255,0.4);
+      background: rgba(255,255,255,0.12); color: #fff;
+      border-radius: 12px;
+      font-family: 'DM Sans', sans-serif; font-size: 14px; font-weight: 500;
+      cursor: pointer; transition: all 0.15s;
+    }
+    .gender-opt.sel { background: #fff; color: #00843D; border-color: #fff; }
+    .uaepass-error {
+      font-size: 11px; color: #FFE2E2; min-height: 14px;
+      margin: -2px 0 8px 2px; font-weight: 400;
+    }
+
+    /* ── What you get ── */
+    .section-label {
+      font-size: 9px;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: rgba(42,26,4,0.4);
+      font-weight: 400;
+      margin-bottom: 10px;
+      flex-shrink: 0;
+    }
+
+    .features {
+      display: flex;
+      flex-direction: column;
+      gap: 0;
+      margin-bottom: 16px;
+      flex-shrink: 0;
+    }
+
+    .feature {
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      padding: 11px 0;
+      border-bottom: 0.5px solid rgba(42,26,4,0.08);
+    }
+
+    .feature:last-child { border-bottom: none; }
+
+    .feature-icon {
+      width: 30px; height: 30px;
+      border-radius: 8px;
+      background: rgba(42,26,4,0.06);
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+    }
+
+    .feature-icon svg { width: 14px; height: 14px; }
+
+    .feature-title {
+      font-size: 13px;
+      font-weight: 500;
+      color: rgba(42,26,4,0.88);
+      margin-bottom: 1px;
+    }
+
+    .feature-desc {
+      font-size: 11px;
+      font-weight: 300;
+      color: rgba(42,26,4,0.55);
+      line-height: 1.4;
+    }
+
+    /* ── Help note ── */
+    .help-note {
+      font-size: 11px;
+      font-weight: 300;
+      color: rgba(42,26,4,0.45);
+      text-align: center;
+      line-height: 1.6;
+      flex-shrink: 0;
+    }
+
+    .help-link {
+      color: #3D1E5E;
+      font-weight: 400;
+    }
+
+    /* ── Home indicator ── */
+    .home-indicator {
+      position: absolute;
+      bottom: 10px; left: 50%;
+      transform: translateX(-50%);
+      width: 134px; height: 5px;
+      background: rgba(42,26,4,0.14);
+      border-radius: 3px; z-index: 10;
+    }
+
+    /* Entry animation */
+    .content > * {
+      animation: fadeUp 0.5s cubic-bezier(0.4,0,0.2,1) both;
+    }
+    .back-btn    { animation-delay: 0.05s; }
+    .header      { animation-delay: 0.1s; }
+    .uaepass-card{ animation-delay: 0.15s; }
+    .section-label{ animation-delay: 0.2s; }
+    .features    { animation-delay: 0.22s; }
+    .help-note   { animation-delay: 0.25s; }
+
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(12px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+  </style>
+  <script src="config.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="waselni-data.js"></script>
+</head>
+<body>
+<div class="page">
+<div class="phone">
+
+  <!-- Locked status bar — dark content on light bg -->
+  <div class="statusbar">
+    <div class="di"></div>
+    <div class="sb-zone"><span class="sb-time">9:41</span></div>
+    <div class="sb-mid"></div>
+    <div class="sb-zone">
+      <div class="sb-icons">
+        <svg width="17" height="12" viewBox="0 0 17 12" fill="none"><rect x="0" y="8" width="3" height="4" rx="0.5" fill="rgba(0,0,0,0.85)"/><rect x="4.5" y="5.5" width="3" height="6.5" rx="0.5" fill="rgba(0,0,0,0.85)"/><rect x="9" y="3" width="3" height="9" rx="0.5" fill="rgba(0,0,0,0.85)"/><rect x="13.5" y="0" width="3" height="12" rx="0.5" fill="rgba(0,0,0,0.85)"/></svg>
+        <svg width="16" height="12" viewBox="0 0 16 12" fill="none"><path d="M8 9.5C8.69 9.5 9.25 10.06 9.25 10.75S8.69 12 8 12 6.75 11.44 6.75 10.75 7.31 9.5 8 9.5z" fill="rgba(0,0,0,0.85)"/><path d="M8 6.5C9.38 6.5 10.63 7.06 11.54 7.97L12.6 6.9C11.4 5.72 9.78 5 8 5s-3.4.72-4.6 1.9l1.06 1.07C5.37 7.06 6.62 6.5 8 6.5z" fill="rgba(0,0,0,0.85)"/><path d="M8 3C10.42 3 12.62 4 14.24 5.62L15.3 4.55C13.39 2.66 10.82 1.5 8 1.5S2.61 2.66.7 4.55l1.06 1.07C3.38 4 5.58 3 8 3z" fill="rgba(0,0,0,0.85)"/></svg>
+        <svg width="25" height="12" viewBox="0 0 25 12" fill="none"><rect x="0.5" y="0.5" width="21" height="11" rx="3.5" stroke="rgba(0,0,0,0.35)"/><rect x="2" y="2" width="15" height="8" rx="2" fill="rgba(0,0,0,0.85)"/><path d="M23 4C23.83 4.3 24.5 5.08 24.5 6S23.83 7.7 23 8V4z" fill="rgba(0,0,0,0.35)"/></svg>
+      </div>
+    </div>
+  </div>
+
+  <!-- Content -->
+  <div class="content">
+
+    <!-- Back -->
+    <button class="back-btn" onclick="goBack()">
+      <svg viewBox="0 0 18 18" fill="none">
+        <path d="M11 4L6 9l5 5" stroke="rgba(42,26,4,0.7)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+    </button>
+
+    <!-- Header -->
+    <div class="header">
+      <div class="page-eyebrow" id="stepLabel">Step 1 of 5</div>
+      <div class="page-title">Verify your<br>identity</div>
+      <div class="page-subtitle">We use UAE Pass to confirm who you are — quickly and securely.</div>
+    </div>
+
+    <!-- UAE Pass card -->
+    <div class="uaepass-card">
+      <div class="uaepass-header">
+        <div class="uaepass-logo">
+          <div class="uaepass-logo-text">UAE<br>PASS</div>
+        </div>
+        <div class="uaepass-label">
+          <div class="uaepass-name">UAE Pass</div>
+          <div class="uaepass-gov">Official Government Identity</div>
+        </div>
+      </div>
+      <div class="uaepass-desc">
+        Trial mode — we're skipping the government ID check. Enter your name and choose a 4-digit PIN. You'll log back in with your first name + PIN on any device.
+      </div>
+      <input id="nameInput" class="uaepass-input" type="text" placeholder="Your full name"
+             autocomplete="name" autocapitalize="words"
+             onkeydown="if(event.key==='Enter')authenticateUAEPass()" />
+      <div class="uaepass-gender">
+        <button type="button" class="gender-opt" data-g="male" onclick="selectGender('male')">Male</button>
+        <button type="button" class="gender-opt" data-g="female" onclick="selectGender('female')">Female</button>
+      </div>
+      <input id="pinInput" class="uaepass-input" type="tel" inputmode="numeric" maxlength="4"
+             placeholder="Choose a 4-digit PIN" autocomplete="off"
+             oninput="this.value=this.value.replace(/[^0-9]/g,''); document.getElementById('nameError').textContent='';"
+             onkeydown="if(event.key==='Enter')authenticateUAEPass()" />
+      <div id="nameError" class="uaepass-error"></div>
+      <button class="uaepass-btn" onclick="authenticateUAEPass()">
+        Continue
+      </button>
+    </div>
+
+    <!-- What you get -->
+    <div class="section-label">What this gives you</div>
+
+    <div class="features">
+
+      <div class="feature">
+        <div class="feature-icon">
+          <svg viewBox="0 0 16 16" fill="none">
+            <path d="M13 4L6.5 11 3 7.5" stroke="rgba(42,26,4,0.7)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </div>
+        <div>
+          <div class="feature-title">Instant verification</div>
+          <div class="feature-desc">Your identity is confirmed against official government records</div>
+        </div>
+      </div>
+
+      <div class="feature">
+        <div class="feature-icon">
+          <svg viewBox="0 0 16 16" fill="none">
+            <rect x="3" y="7" width="10" height="7" rx="2" stroke="rgba(42,26,4,0.7)" stroke-width="1.5"/>
+            <path d="M5 7V5a3 3 0 016 0v2" stroke="rgba(42,26,4,0.7)" stroke-width="1.5" stroke-linecap="round"/>
+          </svg>
+        </div>
+        <div>
+          <div class="feature-title">Trusted by everyone</div>
+          <div class="feature-desc">Drivers and passengers know every person on Waselni is verified</div>
+        </div>
+      </div>
+
+      <div class="feature">
+        <div class="feature-icon">
+          <svg viewBox="0 0 16 16" fill="none">
+            <circle cx="8" cy="8" r="5.5" stroke="rgba(42,26,4,0.7)" stroke-width="1.5"/>
+            <path d="M8 5v3.5l2 1.5" stroke="rgba(42,26,4,0.7)" stroke-width="1.5" stroke-linecap="round"/>
+          </svg>
+        </div>
+        <div>
+          <div class="feature-title">One tap, no forms</div>
+          <div class="feature-desc">Your profile fills in automatically — name, nationality, verified status</div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Help note -->
+    <div class="help-note">
+      Don't have UAE Pass? <span class="help-link">Download it</span> from the App Store.
+    </div>
+
+  </div>
+
+  <div class="home-indicator"></div>
+
+</div>
+</div>
+
+<script>
+  const userRole = localStorage.getItem('waselni_role') || 'passenger';
+
+  let selectedGender = '';
+  function selectGender(g) {
+    selectedGender = g;
+    document.querySelectorAll('.gender-opt').forEach(b => b.classList.toggle('sel', b.dataset.g === g));
+    const err = document.getElementById('nameError'); if (err) err.textContent = '';
+  }
+
+  async function authenticateUAEPass() {
+    const input = document.getElementById('nameInput');
+    const name = (input.value || '').trim();
+    const pin = (document.getElementById('pinInput').value || '').trim();
+    const firstName = name.split(/\s+/)[0] || '';
+    const err = document.getElementById('nameError');
+    if (name.length < 2) { err.textContent = 'Please enter your name to continue.'; input.focus(); return; }
+    if (!selectedGender) { err.textContent = 'Please choose Male or Female.'; return; }
+    if (!/^\d{4}$/.test(pin)) { err.textContent = 'Please choose a 4-digit PIN.'; return; }
+
+    // If the backend is connected, make sure this first name + PIN isn't already taken.
+    try {
+      if (window.WaselniData && WaselniData.ready && await WaselniData.credentialTaken(firstName, pin)) {
+        err.textContent = 'That first name + PIN is taken — pick a different PIN.'; return;
+      }
+    } catch (e) {}
+
+    // Trust-based stand-in for the UAE Pass identity (same shape downstream expects)
+    const uaePassProfile = {
+      fullName: name,
+      gender: selectedGender,
+      nationality: 'United Arab Emirates',
+      verified: true,
+      trial: true
+    };
+    localStorage.setItem('waselni_uaepass_profile', JSON.stringify(uaePassProfile));
+    // Merge login credentials + identity into the real profile
+    // (first name = login username, and it's what the app displays).
+    const prof = JSON.parse(localStorage.getItem('waselni_profile') || '{}');
+    prof.firstName = firstName;
+    prof.username  = firstName.toLowerCase();
+    prof.pin       = pin;
+    prof.gender    = selectedGender;
+    localStorage.setItem('waselni_profile', JSON.stringify(prof));
+    setTimeout(() => window.location.href = 'waselni-auth-social.html', 400);
+  }
+
+  function goBack() {
+    window.location.href = 'index.html';
+  }
+
+  const _role = localStorage.getItem('waselni_role') || 'passenger';
+  const _total = (_role === 'driver' || _role === 'both') ? 6 : 5;
+  const _el = document.getElementById('stepLabel');
+  if (_el) _el.textContent = 'Step 1 of ' + _total;
+</script>
+</body>
+</html>

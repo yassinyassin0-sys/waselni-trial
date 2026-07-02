@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<!-- saved from url=(0050)file:///Users/yassinyassin/Downloads/index_73.html -->
+<!-- deploy trigger -->
+<html lang="en"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="light-content">
+  <title>index</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com/">
+  <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600&display=swap" rel="stylesheet">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    html, body { height: 100%; width: 100%; overflow: hidden; position: fixed; }
+    body { font-family: 'DM Sans', sans-serif; -webkit-font-smoothing: antialiased; }
+
+    .page {
+      width: 100vw; height: 100vh;
+      display: flex; align-items: center; justify-content: center;
+      background: #0A0818;
+    }
+
+    .phone {
+      width: 402px; height: 874px;
+      border-radius: 52px;
+      overflow: hidden;
+      position: relative;
+      flex-shrink: 0;
+      background: linear-gradient(180deg, #0A0818 0%, #140E2A 40%, #1E1240 70%, #2A1545 100%);
+    }
+
+    @media (max-width: 430px) {
+      .phone { width: 100vw; height: 100vh; border-radius: 0; }
+    }
+
+    /* Canvas — background stars only */
+    #c {
+      position: absolute;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      z-index: 1;
+      pointer-events: none;
+    }
+
+    /* Status bar */
+    .statusbar {
+      position: absolute;
+      top: 0; left: 0; right: 0; height: 54px;
+      display: flex; align-items: center; justify-content: space-between;
+      margin-top: 8px; z-index: 100; pointer-events: none;
+    }
+    .di {
+      position: absolute; top: 50%; left: 50%;
+      transform: translate(-50%,-50%);
+      width: 126px; height: 37px;
+      background: #000; border-radius: 20px; z-index: 20;
+    }
+    .sb-zone { width: 138px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+    .sb-mid { width: 126px; flex-shrink: 0; }
+    .sb-time { font-size: 15px; font-weight: 600; letter-spacing: -0.3px; color: rgba(255,255,255,0.92); }
+    .sb-icons { display: flex; align-items: center; gap: 7px; }
+
+    /* ── Brand block — starts dead centre, moves up ── */
+    .brand {
+      position: absolute;
+      left: 0; right: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      z-index: 10;
+      /* Dead centre of full phone height (874px / 2 = 437px) */
+      top: 50%;
+      transform: translateY(-50%);
+      transition: top 0.8s cubic-bezier(0.4,0,0.2,1),
+                  transform 0.8s cubic-bezier(0.4,0,0.2,1);
+    }
+
+    .brand.moved {
+      top: 267px;
+      transform: translateY(-50%);
+    }
+
+    .brand-name {
+      font-family: 'Instrument Serif', serif;
+      font-style: italic;
+      font-size: 82px;
+      line-height: 1;
+      letter-spacing: -0.03em;
+      color: rgba(250,240,215,0.96);
+      opacity: 0;
+      transition: opacity 0.6s ease;
+      text-align: center;
+    }
+
+    .brand-name.visible { opacity: 1; }
+
+    .brand-tagline {
+      font-size: 13px;
+      font-weight: 300;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: rgba(220,205,255,0.55);
+      margin-top: 14px;
+      opacity: 0;
+      transform: translateY(6px);
+      transition: opacity 0.5s ease, transform 0.5s ease;
+    }
+
+    .brand-tagline.visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    /* ── Sheet ── */
+    .sheet {
+      position: absolute;
+      bottom: 0; left: 0; right: 0; height: 340px;
+      background: #F0E8D5;
+      border-radius: 36px 36px 52px 52px;
+      padding: 28px 32px 54px;
+      display: flex; flex-direction: column;
+      z-index: 20;
+      transform: translateY(100%);
+      transition: transform 0.65s cubic-bezier(0.32,0,0.2,1);
+    }
+    .sheet.visible { transform: translateY(0); }
+
+    .sheet-label {
+      font-size: 9px; letter-spacing: 0.15em; text-transform: uppercase;
+      color: rgba(42,26,4,0.55); font-weight: 400; margin-bottom: 14px;
+    }
+    .roles { display: flex; flex-direction: column; gap: 9px; flex: 1; }
+
+    .role-card {
+      display: flex; align-items: center; gap: 14px;
+      padding: 14px 16px; border-radius: 18px;
+      background: rgba(42,26,4,0.04);
+      border: 0.5px solid rgba(42,26,4,0.1);
+      cursor: pointer;
+      -webkit-tap-highlight-color: transparent;
+      opacity: 0; transform: translateY(8px);
+      transition: opacity 0.35s ease, transform 0.35s ease, background 0.15s;
+    }
+    .role-card.visible { opacity: 1; transform: translateY(0); }
+    .role-card:active { background: rgba(42,26,4,0.08); transform: scale(0.98) !important; }
+
+    .role-circle {
+      width: 40px; height: 40px; border-radius: 50%;
+      background: #2A1545;
+      display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+    }
+    .role-circle svg { width: 18px; height: 18px; }
+    .role-text { flex: 1; }
+    .role-title { font-size: 15px; font-weight: 500; color: rgba(42,26,4,0.88); margin-bottom: 2px; }
+    .role-desc { font-size: 11px; font-weight: 300; color: rgba(42,26,4,0.55); line-height: 1.4; }
+    .role-arrow { color: rgba(42,26,4,0.22); font-size: 16px; flex-shrink: 0; transition: transform 0.2s; }
+    .role-card:active .role-arrow { transform: translateX(3px); }
+    .footer-note { font-size: 10px; font-weight: 300; color: rgba(42,26,4,0.55); text-align: center; margin-top: 10px; }
+
+    .home-indicator {
+      position: absolute; bottom: 10px; left: 50%;
+      transform: translateX(-50%);
+      width: 134px; height: 5px;
+      background: rgba(42,26,4,0.14); border-radius: 3px; z-index: 30;
+    }
+  </style>
+  <script src="config.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="waselni-data.js"></script>
+  <script src="waselni-trial.js"></script>
+</head>
+<body>
+<div class="page">
+<div class="phone" id="phone">
+
+  <!-- Background star canvas -->
+  <canvas id="c" width="402" height="874"></canvas>
+
+  <!-- Status bar -->
+  <div class="statusbar">
+    <div class="di"></div>
+    <div class="sb-zone"><span class="sb-time">9:41</span></div>
+    <div class="sb-mid"></div>
+    <div class="sb-zone">
+      <div class="sb-icons">
+        <svg width="17" height="12" viewBox="0 0 17 12" fill="none"><rect x="0" y="8" width="3" height="4" rx="0.5" fill="rgba(255,255,255,0.92)"></rect><rect x="4.5" y="5.5" width="3" height="6.5" rx="0.5" fill="rgba(255,255,255,0.92)"></rect><rect x="9" y="3" width="3" height="9" rx="0.5" fill="rgba(255,255,255,0.92)"></rect><rect x="13.5" y="0" width="3" height="12" rx="0.5" fill="rgba(255,255,255,0.92)"></rect></svg>
+        <svg width="16" height="12" viewBox="0 0 16 12" fill="none"><path d="M8 9.5C8.69 9.5 9.25 10.06 9.25 10.75S8.69 12 8 12 6.75 11.44 6.75 10.75 7.31 9.5 8 9.5z" fill="rgba(255,255,255,0.92)"></path><path d="M8 6.5C9.38 6.5 10.63 7.06 11.54 7.97L12.6 6.9C11.4 5.72 9.78 5 8 5s-3.4.72-4.6 1.9l1.06 1.07C5.37 7.06 6.62 6.5 8 6.5z" fill="rgba(255,255,255,0.92)"></path><path d="M8 3C10.42 3 12.62 4 14.24 5.62L15.3 4.55C13.39 2.66 10.82 1.5 8 1.5S2.61 2.66.7 4.55l1.06 1.07C3.38 4 5.58 3 8 3z" fill="rgba(255,255,255,0.92)"></path></svg>
+        <svg width="25" height="12" viewBox="0 0 25 12" fill="none"><rect x="0.5" y="0.5" width="21" height="11" rx="3.5" stroke="rgba(255,255,255,0.35)"></rect><rect x="2" y="2" width="15" height="8" rx="2" fill="rgba(255,255,255,0.92)"></rect><path d="M23 4C23.83 4.3 24.5 5.08 24.5 6S23.83 7.7 23 8V4z" fill="rgba(255,255,255,0.35)"></path></svg>
+      </div>
+    </div>
+  </div>
+
+  <!-- Brand block — centred then moves up -->
+  <div class="brand moved" id="brand">
+    <div class="brand-name visible" id="brandName">Waselni</div>
+    <div class="brand-tagline visible" id="brandTagline">Navigate together</div>
+  </div>
+
+  <!-- Sheet -->
+  <div class="sheet visible" id="sheet">
+    <div class="sheet-label">How are you travelling?</div>
+    <div class="roles">
+
+      <div class="role-card visible" id="card0" onclick="selectRole(&#39;passenger&#39;)">
+        <div class="role-circle"><svg viewBox="0 0 20 20" fill="none"><circle cx="10" cy="6" r="3.5" stroke="#F0E8D5" stroke-width="1.5"></circle><path d="M3 17c0-3.87 3.13-7 7-7s7 3.13 7 7" stroke="#F0E8D5" stroke-width="1.5" stroke-linecap="round"></path></svg></div>
+        <div class="role-text">
+          <div class="role-title">I'm a Passenger</div>
+          <div class="role-desc">Find like-minded people heading your way</div>
+        </div>
+        <div class="role-arrow">›</div>
+      </div>
+
+      <div class="role-card visible" id="card1" onclick="selectRole(&#39;driver&#39;)">
+        <div class="role-circle"><svg viewBox="0 0 20 20" fill="none"><rect x="2" y="7" width="16" height="9" rx="3" stroke="#F0E8D5" stroke-width="1.5"></rect><path d="M5 7V6a5 5 0 0110 0v1" stroke="#F0E8D5" stroke-width="1.5"></path><circle cx="6" cy="13" r="1.5" fill="#F0E8D5"></circle><circle cx="14" cy="13" r="1.5" fill="#F0E8D5"></circle></svg></div>
+        <div class="role-text">
+          <div class="role-title">I'm a Driver</div>
+          <div class="role-desc">Share your journey and earn along the way</div>
+        </div>
+        <div class="role-arrow">›</div>
+      </div>
+
+      <div class="role-card visible" id="card2" onclick="selectRole(&#39;both&#39;)">
+        <div class="role-circle"><svg viewBox="0 0 20 20" fill="none"><circle cx="7" cy="6" r="2.5" stroke="#F0E8D5" stroke-width="1.5"></circle><path d="M2 15.5c0-2.76 2.24-5 5-5" stroke="#F0E8D5" stroke-width="1.5" stroke-linecap="round"></path><circle cx="13" cy="6" r="2.5" stroke="#F0E8D5" stroke-width="1.5"></circle><path d="M13 10.5c2.76 0 5 2.24 5 5" stroke="#F0E8D5" stroke-width="1.5" stroke-linecap="round"></path><path d="M9 15.5h2" stroke="#F0E8D5" stroke-width="1.5" stroke-linecap="round"></path></svg></div>
+        <div class="role-text">
+          <div class="role-title">Both</div>
+          <div class="role-desc">Maximum flexibility for every journey</div>
+        </div>
+        <div class="role-arrow">›</div>
+      </div>
+
+    </div>
+    <div class="footer-note">You can change this anytime in settings</div>
+    <div class="footer-note" style="margin-top:7px;">Been here before? <span style="color:#3D1E5E;font-weight:500;cursor:pointer;" onclick="window.location.href='waselni-login.html'">Log in</span></div>
+  </div>
+
+  <div class="home-indicator"></div>
+
+</div>
+</div>
+
+<script>
+// First-time visitor — show onboarding below. (Returning users are already
+// redirected to home from the <head>, before this screen renders.)
+
+function selectRole(role) {
+  localStorage.setItem('waselni_role', role);
+  window.location.href = 'waselni-auth-uaepass.html';
+}
+
+// ── Background star twinkle ──────────────────────────────────────
+const phone = document.getElementById('phone');
+const canvas = document.getElementById('c');
+const ctx = canvas.getContext('2d');
+canvas.width = phone.offsetWidth;
+canvas.height = phone.offsetHeight;
+const W = canvas.width;
+const H = canvas.height;
+
+const BG = [
+  {x:W*0.08, y:H*0.09, r:1.4, p:0.4},
+  {x:W*0.90, y:H*0.07, r:1.1, p:1.2},
+  {x:W*0.82, y:H*0.16, r:0.9, p:2.3},
+  {x:W*0.06, y:H*0.28, r:1.2, p:1.9},
+  {x:W*0.93, y:H*0.32, r:1.0, p:0.8},
+  {x:W*0.15, y:H*0.42, r:1.3, p:3.0},
+  {x:W*0.87, y:H*0.38, r:0.8, p:1.6},
+  {x:W*0.48, y:H*0.08, r:1.0, p:2.8},
+  {x:W*0.32, y:H*0.22, r:0.9, p:0.9},
+  {x:W*0.65, y:H*0.30, r:1.1, p:2.1},
+  {x:W*0.72, y:H*0.12, r:0.8, p:1.5},
+  {x:W*0.20, y:H*0.55, r:1.2, p:3.5},
+];
+
+function drawStar(x, y, r, alpha) {
+  if (alpha <= 0.01) return;
+  const g = ctx.createRadialGradient(x,y,0,x,y,r*5);
+  g.addColorStop(0, `rgba(255,240,190,${Math.min(1,alpha*0.28)})`);
+  g.addColorStop(1, 'rgba(255,240,190,0)');
+  ctx.beginPath(); ctx.arc(x,y,r*5,0,Math.PI*2);
+  ctx.fillStyle = g; ctx.fill();
+  ctx.beginPath(); ctx.arc(x,y,r,0,Math.PI*2);
+  ctx.fillStyle = `rgba(255,240,190,${Math.min(1,alpha)})`;
+  ctx.fill();
+}
+
+function twinkle(ts) {
+  ctx.clearRect(0, 0, W, H);
+  const t = ts * 0.001;
+  BG.forEach(s => drawStar(s.x, s.y, s.r, 0.28 + 0.18*Math.sin(t*2.2+s.p)));
+  requestAnimationFrame(twinkle);
+}
+requestAnimationFrame(twinkle);
+
+// ── Sequence ─────────────────────────────────────────────────────
+// 0ms     — Waselni fades in, centred
+// 800ms   — Navigate together fades in below
+// 1500ms  — both drift up together
+// 2200ms  — sheet slides up, cards stagger in
+
+document.fonts.ready.then(() => {
+  const brandName    = document.getElementById('brandName');
+  const brandTagline = document.getElementById('brandTagline');
+  const brand        = document.getElementById('brand');
+
+  // Step 1 — Waselni appears dead centre
+  setTimeout(() => brandName.classList.add('visible'), 100);
+
+  // Step 2 — Navigate together fades in below, after a pause
+  setTimeout(() => brandTagline.classList.add('visible'), 900);
+
+  // Step 3 — both hold for a beat, then shift up together
+  setTimeout(() => brand.classList.add('moved'), 1800);
+
+  // Step 4 — sheet slides up after brand has settled
+  setTimeout(() => document.getElementById('sheet').classList.add('visible'), 2700);
+  setTimeout(() => {
+    ['card0','card1','card2'].forEach((id,i) => {
+      setTimeout(() => document.getElementById(id).classList.add('visible'), i*90);
+    });
+  }, 2900);
+});
+</script>
+
+
+</body></html>

@@ -1,0 +1,824 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="dark-content">
+  <title>waselni-auth-social</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600&display=swap" rel="stylesheet">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    html, body { height: 100%; width: 100%; overflow: hidden; position: fixed; }
+    body { font-family: 'DM Sans', sans-serif; -webkit-font-smoothing: antialiased; }
+
+    .page {
+      width: 100vw; height: 100vh;
+      display: flex; align-items: center; justify-content: center;
+      background: #E8DFC8;
+    }
+
+    .phone {
+      width: 402px; height: 874px;
+      border-radius: 52px;
+      overflow: hidden;
+      position: relative;
+      flex-shrink: 0;
+      background: #F0E8D5;
+      display: flex;
+      flex-direction: column;
+    }
+
+    @media (max-width: 430px) {
+      .phone { width: 100vw; height: 100vh; border-radius: 0; }
+    }
+
+    /* ── Locked status bar ── */
+    .statusbar {
+      position: absolute;
+      top: 0; left: 0; right: 0; height: 54px;
+      display: flex; align-items: center; justify-content: space-between;
+      margin-top: 8px; z-index: 100; pointer-events: none;
+    }
+    .di {
+      position: absolute; top: 50%; left: 50%;
+      transform: translate(-50%,-50%);
+      width: 126px; height: 37px;
+      background: #000; border-radius: 20px; z-index: 20;
+    }
+    .sb-zone { width: 138px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+    .sb-mid { width: 126px; flex-shrink: 0; }
+    .sb-time { font-size: 15px; font-weight: 600; letter-spacing: -0.3px; color: rgba(0,0,0,0.85); }
+    .sb-icons { display: flex; align-items: center; gap: 7px; }
+
+    /* ── Scrollable content ── */
+    .content {
+      flex: 1;
+      overflow-y: auto;
+      padding: 82px 24px 60px;
+      display: flex;
+      flex-direction: column;
+      -webkit-overflow-scrolling: touch;
+    }
+
+    /* ── Back button ── */
+    .back-btn {
+      width: 36px; height: 36px;
+      border-radius: 10px;
+      background: rgba(42,26,4,0.07);
+      border: none;
+      display: flex; align-items: center; justify-content: center;
+      cursor: pointer;
+      margin-bottom: 20px;
+      flex-shrink: 0;
+      transition: background 0.15s;
+    }
+    .back-btn:active { background: rgba(42,26,4,0.12); }
+    .back-btn svg { width: 16px; height: 16px; }
+
+    /* ── Header ── */
+
+    .page-eyebrow {
+      font-size: 11px; letter-spacing: 0.15em; text-transform: uppercase;
+      color: rgba(42,26,4,0.4); font-weight: 400; margin-bottom: 10px;
+    }
+
+    .page-title {
+      font-family: 'Instrument Serif', serif;
+      font-style: italic;
+      font-size: 34px; line-height: 1.05;
+      letter-spacing: -0.02em;
+      color: #18102E;
+      margin-bottom: 8px;
+    }
+
+    .page-subtitle {
+      font-size: 13px; font-weight: 400;
+      color: rgba(42,26,4,0.6); line-height: 1.6;
+      margin-bottom: 24px;
+    }
+
+    .instruction-label {
+      font-size: 11px; font-weight: 400;
+      color: rgba(42,26,4,0.4);
+      letter-spacing: 0.02em;
+      text-align: center;
+      margin-bottom: 12px;
+    }
+
+    /* ══════════════════════════════
+       STEP 1 — Platform choice
+    ══════════════════════════════ */
+    #step-choice { display: flex; flex-direction: column; }
+    #step-choice.hidden { display: none; }
+
+    .platform-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin-bottom: 20px;
+    }
+
+    .platform-card {
+      border-radius: 20px;
+      padding: 22px 16px;
+      text-align: center;
+      cursor: pointer;
+      position: relative;
+      transition: transform 0.15s, opacity 0.15s;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    .platform-card:active { transform: scale(0.97); }
+
+    .platform-card.linkedin {
+      background: linear-gradient(145deg, #2D6FA8 0%, #1A4D7A 100%);
+    }
+
+    .platform-card.instagram {
+      background: linear-gradient(145deg, #C4733A 0%, #A83D72 50%, #6B3A8A 100%);
+    }
+
+    /* Selected ring */
+    .platform-card.selected::after {
+      content: '';
+      position: absolute;
+      inset: -2px;
+      border-radius: 22px;
+      border: 2px solid #F0E8D5;
+      pointer-events: none;
+    }
+
+    .platform-check-icon {
+      position: absolute;
+      top: 10px; right: 10px;
+      width: 22px; height: 22px;
+      border-radius: 50%;
+      background: rgba(255,255,255,0.25);
+      display: flex; align-items: center; justify-content: center;
+      opacity: 0;
+      transition: opacity 0.2s;
+    }
+
+    .platform-card.selected .platform-check-icon { opacity: 1; }
+
+    .platform-check-icon svg { width: 12px; height: 12px; }
+
+    .platform-logo {
+      width: 48px; height: 48px;
+      background: rgba(255,255,255,0.15);
+      border-radius: 12px;
+      display: flex; align-items: center; justify-content: center;
+      margin: 0 auto 12px;
+    }
+
+    .platform-card.linkedin .platform-logo {
+      background: white;
+    }
+
+    .platform-card.instagram .platform-logo {
+      background: rgba(255,255,255,0.2);
+    }
+
+    .platform-name {
+      font-size: 15px; font-weight: 500;
+      color: white; margin-bottom: 5px;
+    }
+
+    .platform-desc {
+      font-size: 12px; font-weight: 400;
+      color: rgba(255,255,255,0.7); line-height: 1.4;
+    }
+
+    /* Benefits */
+    .benefits {
+      background: rgba(42,26,4,0.04);
+      border-radius: 16px;
+      padding: 16px 18px;
+      margin-bottom: 20px;
+    }
+
+    .benefit-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      padding: 7px 0;
+      border-bottom: 0.5px solid rgba(42,26,4,0.07);
+    }
+
+    .benefit-item:last-child { border-bottom: none; }
+
+    .benefit-icon {
+      width: 20px; height: 20px;
+      border-radius: 50%;
+      background: rgba(42,26,4,0.08);
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+      margin-top: 1px;
+    }
+
+    .benefit-icon svg { width: 10px; height: 10px; }
+
+    .benefit-text {
+      font-size: 13px; font-weight: 400;
+      color: rgba(42,26,4,0.6); line-height: 1.5;
+    }
+
+    /* ── Primary button ── */
+    .primary-btn {
+      width: 100%;
+      height: 52px;
+      background: #3D1E5E;
+      color: #F0E8D5;
+      border: none;
+      border-radius: 14px;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 15px;
+      font-weight: 500;
+      cursor: pointer;
+      letter-spacing: 0.01em;
+      transition: opacity 0.15s;
+      opacity: 0.3;
+      pointer-events: none;
+    }
+
+    .primary-btn.active { opacity: 1; pointer-events: all; }
+    .primary-btn.active:active { opacity: 0.85; }
+
+    /* ══════════════════════════════
+       STEP 2 — Profile form
+    ══════════════════════════════ */
+    #step-form { display: none; flex-direction: column; }
+    #step-form.active { display: flex; }
+
+    /* Connected badges */
+    .badges-row {
+      display: flex; gap: 8px; flex-wrap: wrap;
+      margin-bottom: 20px;
+    }
+
+    .connected-badge {
+      display: inline-flex; align-items: center; gap: 6px;
+      background: rgba(42,26,4,0.06);
+      border: 0.5px solid rgba(42,26,4,0.12);
+      padding: 6px 12px;
+      border-radius: 100px;
+      font-size: 13px; font-weight: 400;
+      color: rgba(42,26,4,0.6);
+    }
+
+    /* ── Profile card ── */
+    .profile-card {
+      background: rgba(42,26,4,0.04);
+      border: 0.5px solid rgba(42,26,4,0.08);
+      border-radius: 20px;
+      padding: 24px 20px 20px;
+      margin-bottom: 6px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+    }
+
+    .photo-circle {
+      width: 72px; height: 72px;
+      border-radius: 50%;
+      background: #2A1545;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+      position: relative;
+      margin-bottom: 14px;
+      font-family: 'Instrument Serif', serif;
+      font-style: italic;
+      font-size: 28px;
+      color: #F0E8D5;
+    }
+
+    .platform-check-badge {
+      position: absolute;
+      bottom: 0; right: 0;
+      width: 20px; height: 20px;
+      border-radius: 50%;
+      border: 2px solid #F0E8D5;
+      background: #00843D;
+      display: flex; align-items: center; justify-content: center;
+    }
+
+    .platform-check-badge svg { width: 9px; height: 9px; }
+
+    .preview-name {
+      font-size: 17px; font-weight: 500;
+      color: rgba(42,26,4,0.88);
+      margin-bottom: 3px;
+    }
+
+    .preview-handle {
+      font-size: 13px; font-weight: 400;
+      color: rgba(42,26,4,0.4);
+      margin-bottom: 10px;
+    }
+
+    .verified-tag {
+      font-size: 11px; font-weight: 400;
+      color: #00843D;
+      display: inline-flex; align-items: center; gap: 3px;
+      background: rgba(0,132,61,0.08);
+      padding: 3px 10px;
+      border-radius: 100px;
+      margin-bottom: 20px;
+    }
+
+    .profile-locked-fields {
+      width: 100%;
+      border-top: 0.5px solid rgba(42,26,4,0.08);
+      padding-top: 14px;
+      text-align: left;
+    }
+
+    .locked-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 9px 0;
+      border-bottom: 0.5px solid rgba(42,26,4,0.06);
+    }
+
+    .locked-row:last-child { border-bottom: none; }
+
+    .locked-row-label {
+      font-size: 13px; font-weight: 400;
+      color: rgba(42,26,4,0.5);
+    }
+
+    .locked-row-value {
+      font-size: 13px; font-weight: 500;
+      color: rgba(42,26,4,0.6);
+      display: flex; align-items: center; gap: 5px;
+    }
+
+    .uaepass-note {
+      display: flex; align-items: center; gap: 5px;
+      font-size: 11px; color: rgba(42,26,4,0.35);
+      margin-bottom: 20px;
+      padding: 4px 2px 0;
+    }
+
+    /* Form section blocks */
+    .form-section {
+      background: rgba(42,26,4,0.03);
+      border: 0.5px solid rgba(42,26,4,0.08);
+      border-radius: 20px;
+      padding: 20px;
+      margin-bottom: 12px;
+    }
+
+    /* Section label */
+    .section-label {
+      font-size: 11px; letter-spacing: 0.15em; text-transform: uppercase;
+      color: rgba(42,26,4,0.4); font-weight: 400;
+      margin-bottom: 4px;
+    }
+
+    .section-heading {
+      font-size: 15px; font-weight: 500;
+      color: rgba(42,26,4,0.88);
+      margin-bottom: 16px;
+    }
+
+    /* Divider */
+    .section-divider {
+      height: 0.5px;
+      background: rgba(42,26,4,0.08);
+      margin: 14px 0;
+    }
+
+    /* Input group */
+    .input-group { margin-bottom: 16px; }
+
+    .input-label {
+      font-size: 13px; font-weight: 500;
+      color: rgba(42,26,4,0.75);
+      margin-bottom: 7px;
+      display: flex; align-items: center; gap: 8px;
+    }
+
+    .lock-tag {
+      font-size: 11px; font-weight: 400;
+      color: rgba(42,26,4,0.4);
+      background: rgba(42,26,4,0.06);
+      padding: 2px 8px;
+      border-radius: 100px;
+    }
+
+    .text-input {
+      width: 100%;
+      padding: 12px 14px;
+      border: 0.5px solid rgba(42,26,4,0.15);
+      border-radius: 12px;
+      font-size: 14px; font-weight: 400;
+      background: rgba(42,26,4,0.03);
+      font-family: 'DM Sans', sans-serif;
+      color: rgba(42,26,4,0.88);
+      outline: none;
+      transition: border-color 0.2s, background 0.2s;
+      -webkit-appearance: none;
+    }
+
+    .text-input:focus {
+      border-color: #3D1E5E;
+      background: white;
+    }
+
+    .text-input::placeholder { color: rgba(42,26,4,0.3); }
+
+    .text-input.locked {
+      background: rgba(42,26,4,0.04);
+      color: rgba(42,26,4,0.55);
+      pointer-events: none;
+    }
+
+    textarea.text-input {
+      min-height: 72px;
+      resize: none;
+    }
+
+    .helper-text {
+      font-size: 11px; font-weight: 400;
+      color: rgba(42,26,4,0.4);
+      margin-top: 5px; line-height: 1.6;
+    }
+
+    /* Job suggestions */
+    .input-wrapper { position: relative; }
+
+    .job-suggestions {
+      position: absolute;
+      top: calc(100% + 4px); left: 0; right: 0;
+      background: white;
+      border: 0.5px solid rgba(42,26,4,0.15);
+      border-radius: 12px;
+      max-height: 180px;
+      overflow-y: auto;
+      display: none;
+      z-index: 50;
+      box-shadow: 0 4px 16px rgba(42,26,4,0.1);
+    }
+
+    .job-suggestions.active { display: block; }
+
+    .job-suggestion-item {
+      padding: 10px 14px;
+      font-size: 14px; font-weight: 400;
+      color: rgba(42,26,4,0.75);
+      cursor: pointer;
+      border-bottom: 0.5px solid rgba(42,26,4,0.06);
+      transition: background 0.1s;
+    }
+
+    .job-suggestion-item:last-child { border-bottom: none; }
+    .job-suggestion-item:active { background: rgba(42,26,4,0.04); }
+
+    /* Add button inside input */
+    .input-add-btn {
+      position: absolute;
+      right: 8px; top: 50%;
+      transform: translateY(-50%);
+      height: 30px;
+      padding: 0 12px;
+      background: #3D1E5E;
+      color: #F0E8D5;
+      border: none;
+      border-radius: 8px;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 13px; font-weight: 400;
+      cursor: pointer;
+      opacity: 0; pointer-events: none;
+      transition: opacity 0.15s;
+    }
+
+    .input-add-btn.active { opacity: 1; pointer-events: all; }
+
+    /* Tags */
+    .tags-row {
+      display: flex; flex-wrap: wrap; gap: 7px;
+      margin-top: 10px;
+    }
+
+    .tag-pill {
+      display: inline-flex; align-items: center; gap: 6px;
+      background: #2A1545;
+      color: #F0E8D5;
+      padding: 6px 12px;
+      border-radius: 100px;
+      font-size: 13px; font-weight: 400;
+      animation: tagIn 0.2s ease-out;
+    }
+
+    @keyframes tagIn {
+      from { opacity: 0; transform: scale(0.85); }
+      to   { opacity: 1; transform: scale(1); }
+    }
+
+    .tag-remove {
+      background: rgba(240,232,213,0.25);
+      border: none; color: #F0E8D5;
+      width: 16px; height: 16px;
+      border-radius: 50%;
+      font-size: 12px;
+      cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      padding: 0;
+      transition: background 0.15s;
+    }
+
+    .tag-remove:active { background: rgba(240,232,213,0.4); }
+
+    /* Carousel */
+    /* Home indicator */
+    .home-indicator {
+      position: absolute; bottom: 10px; left: 50%;
+      transform: translateX(-50%);
+      width: 134px; height: 5px;
+      background: rgba(42,26,4,0.14);
+      border-radius: 3px; z-index: 10;
+    }
+  </style>
+  <script src="config.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="waselni-data.js"></script>
+</head>
+<body>
+<div class="page">
+<div class="phone">
+
+  <!-- Status bar -->
+  <div class="statusbar">
+    <div class="di"></div>
+    <div class="sb-zone"><span class="sb-time">9:41</span></div>
+    <div class="sb-mid"></div>
+    <div class="sb-zone">
+      <div class="sb-icons">
+        <svg width="17" height="12" viewBox="0 0 17 12" fill="none"><rect x="0" y="8" width="3" height="4" rx="0.5" fill="rgba(0,0,0,0.85)"/><rect x="4.5" y="5.5" width="3" height="6.5" rx="0.5" fill="rgba(0,0,0,0.85)"/><rect x="9" y="3" width="3" height="9" rx="0.5" fill="rgba(0,0,0,0.85)"/><rect x="13.5" y="0" width="3" height="12" rx="0.5" fill="rgba(0,0,0,0.85)"/></svg>
+        <svg width="16" height="12" viewBox="0 0 16 12" fill="none"><path d="M8 9.5C8.69 9.5 9.25 10.06 9.25 10.75S8.69 12 8 12 6.75 11.44 6.75 10.75 7.31 9.5 8 9.5z" fill="rgba(0,0,0,0.85)"/><path d="M8 6.5C9.38 6.5 10.63 7.06 11.54 7.97L12.6 6.9C11.4 5.72 9.78 5 8 5s-3.4.72-4.6 1.9l1.06 1.07C5.37 7.06 6.62 6.5 8 6.5z" fill="rgba(0,0,0,0.85)"/><path d="M8 3C10.42 3 12.62 4 14.24 5.62L15.3 4.55C13.39 2.66 10.82 1.5 8 1.5S2.61 2.66.7 4.55l1.06 1.07C3.38 4 5.58 3 8 3z" fill="rgba(0,0,0,0.85)"/></svg>
+        <svg width="25" height="12" viewBox="0 0 25 12" fill="none"><rect x="0.5" y="0.5" width="21" height="11" rx="3.5" stroke="rgba(0,0,0,0.35)"/><rect x="2" y="2" width="15" height="8" rx="2" fill="rgba(0,0,0,0.85)"/><path d="M23 4C23.83 4.3 24.5 5.08 24.5 6S23.83 7.7 23 8V4z" fill="rgba(0,0,0,0.35)"/></svg>
+      </div>
+    </div>
+  </div>
+
+  <!-- Scrollable content -->
+  <div class="content">
+
+    <!-- Back -->
+    <button class="back-btn" onclick="goBack()">
+      <svg viewBox="0 0 18 18" fill="none"><path d="M11 4L6 9l5 5" stroke="rgba(42,26,4,0.7)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    </button>
+
+    <div class="page-eyebrow" id="pageEyebrow">Step 2 of 5</div>
+    <div class="page-title" id="pageTitle">Connect your social cards</div>
+    <div class="page-subtitle">Think of these as your business cards. What you share, and with who, is always up to you.</div>
+
+    <!-- ── STEP 1 ── -->
+    <div id="step-choice">
+
+      <div class="instruction-label">Select one or both to strengthen your profile</div>
+
+      <div class="platform-grid">
+
+        <!-- LinkedIn -->
+        <div class="platform-card linkedin" id="linkedin-card" onclick="togglePlatform('linkedin')">
+          <div class="platform-check-icon" id="linkedin-check">
+            <svg viewBox="0 0 12 12" fill="none"><path d="M2 6l3 3 5-5" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </div>
+          <div class="platform-logo">
+            <svg width="26" height="26" viewBox="0 0 24 24" fill="#2D6FA8"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433a2.062 2.062 0 01-2.063-2.065 2.064 2.064 0 112.063 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/></svg>
+          </div>
+          <div class="platform-name">LinkedIn</div>
+          <div class="platform-desc">Connect your<br>LinkedIn profile</div>
+        </div>
+
+        <!-- Instagram -->
+        <div class="platform-card instagram" id="instagram-card" onclick="togglePlatform('instagram')">
+          <div class="platform-check-icon" id="instagram-check">
+            <svg viewBox="0 0 12 12" fill="none"><path d="M2 6l3 3 5-5" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </div>
+          <div class="platform-logo">
+            <svg width="26" height="26" viewBox="0 0 24 24" fill="white"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zM12 0C8.741 0 8.333.014 7.053.072 2.695.272.273 2.69.073 7.052.014 8.333 0 8.741 0 12c0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98C8.333 23.986 8.741 24 12 24c3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98C15.668.014 15.259 0 12 0zm0 5.838a6.162 6.162 0 100 12.324 6.162 6.162 0 000-12.324zM12 16a4 4 0 110-8 4 4 0 010 8zm6.406-11.845a1.44 1.44 0 100 2.881 1.44 1.44 0 000-2.881z"/></svg>
+          </div>
+          <div class="platform-name">Instagram</div>
+          <div class="platform-desc">Connect your<br>Instagram profile</div>
+        </div>
+
+      </div>
+
+      <!-- Benefits -->
+      <div class="benefits">
+        <div class="benefit-item">
+          <div class="benefit-icon">
+            <svg viewBox="0 0 10 10" fill="none"><path d="M2 5l2 2 4-4" stroke="rgba(42,26,4,0.6)" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </div>
+          <div class="benefit-text">Auto-fills your profile details</div>
+        </div>
+        <div class="benefit-item">
+          <div class="benefit-icon">
+            <svg viewBox="0 0 10 10" fill="none"><rect x="2" y="4.5" width="6" height="4" rx="1" stroke="rgba(42,26,4,0.6)" stroke-width="1.2"/><path d="M3.5 4.5V3a1.5 1.5 0 013 0v1.5" stroke="rgba(42,26,4,0.6)" stroke-width="1.2" stroke-linecap="round"/></svg>
+          </div>
+          <div class="benefit-text">Your handle stays private until you choose to connect</div>
+        </div>
+        <div class="benefit-item">
+          <div class="benefit-icon">
+            <svg viewBox="0 0 10 10" fill="none"><circle cx="3.5" cy="4" r="1.5" stroke="rgba(42,26,4,0.6)" stroke-width="1.2"/><circle cx="6.5" cy="4" r="1.5" stroke="rgba(42,26,4,0.6)" stroke-width="1.2"/><path d="M1 9c0-1.38 1.12-2.5 2.5-2.5M9 9c0-1.38-1.12-2.5-2.5-2.5" stroke="rgba(42,26,4,0.6)" stroke-width="1.2" stroke-linecap="round"/></svg>
+          </div>
+          <div class="benefit-text">Build your network after great journeys</div>
+        </div>
+      </div>
+
+      <button class="primary-btn active" id="choiceContinueBtn" onclick="continueWithSelection()">
+        Continue
+      </button>
+
+    </div>
+
+    <!-- ── STEP 2 ── -->
+    <div id="step-form">
+
+      <!-- Connected badges -->
+      <div class="badges-row" id="badgesRow"></div>
+
+      <!-- ① Profile card — the reveal -->
+      <div class="profile-card">
+        <div class="photo-circle">
+          <span id="photoInitial">A</span>
+          <div class="platform-check-badge">
+            <svg viewBox="0 0 8 8" fill="none"><path d="M1.5 4l2 2 3-3" stroke="white" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </div>
+        </div>
+        <div class="preview-name" id="previewName">—</div>
+        <div class="verified-tag">
+          <svg width="10" height="10" viewBox="0 0 10 10" fill="none"><path d="M1.5 5l2.5 2.5 4.5-4.5" stroke="#00843D" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          <span id="verifiedText">Verified via UAE Pass</span>
+        </div>
+        <!-- Locked fields as quiet confirmation -->
+        <div class="profile-locked-fields">
+          <div class="locked-row">
+            <span class="locked-row-label">Legal name</span>
+            <span class="locked-row-value">
+              <span id="legalNameDisplay">—</span>
+              <svg class="lock-icon" width="12" height="12" viewBox="0 0 12 12" fill="none"><rect x="2" y="5.5" width="8" height="6" rx="1.5" stroke="rgba(42,26,4,0.6)" stroke-width="1"/><path d="M4 5.5V4a2 2 0 0 1 4 0v1.5" stroke="rgba(42,26,4,0.6)" stroke-width="1" stroke-linecap="round"/></svg>
+            </span>
+          </div>
+          <div class="locked-row">
+            <span class="locked-row-label">Gender</span>
+            <span class="locked-row-value">
+              <span id="genderDisplay">—</span>
+              <svg class="lock-icon" width="12" height="12" viewBox="0 0 12 12" fill="none"><rect x="2" y="5.5" width="8" height="6" rx="1.5" stroke="rgba(42,26,4,0.6)" stroke-width="1"/><path d="M4 5.5V4a2 2 0 0 1 4 0v1.5" stroke="rgba(42,26,4,0.6)" stroke-width="1" stroke-linecap="round"/></svg>
+            </span>
+          </div>
+        </div>
+      </div>
+      <div class="uaepass-note">
+        <svg width="11" height="11" viewBox="0 0 12 12" fill="none"><circle cx="6" cy="6" r="5" stroke="rgba(42,26,4,0.3)" stroke-width="1"/><path d="M6 5v3M6 3.5v.5" stroke="rgba(42,26,4,0.3)" stroke-width="1.1" stroke-linecap="round"/></svg>
+        Verified by UAE Pass — these fields cannot be changed
+      </div>
+
+      <!-- Display name editable field -->
+      <div class="form-section" style="margin-bottom:20px;">
+        <div class="section-label">Optional</div>
+        <div class="section-heading">Goes by</div>
+        <div class="input-wrapper">
+          <input type="text" class="text-input" id="displayName" placeholder="e.g. Zee, Alex, DJ Haze…">
+        </div>
+        <div class="helper-text" style="margin-top:6px;">Only shown if different from your legal name. Your UAE Pass identity is always verified underneath.</div>
+      </div>
+
+      <button id="continueBtn" onclick="continueToNext()" style="margin-bottom:60px;width:100%;height:52px;background:#3D1E5E;color:#F0E8D5;border:none;border-radius:14px;font-family:'DM Sans',sans-serif;font-size:15px;font-weight:500;cursor:pointer;">
+        Complete profile
+      </button>
+
+    </div>
+
+  </div>
+
+  <div class="home-indicator"></div>
+
+</div>
+</div>
+
+<script>
+  // ── State ──────────────────────────────────────────────────────
+  let selectedPlatforms = [];
+  let connectedPlatforms = [];
+
+  const uaePassData = JSON.parse(localStorage.getItem('waselni_uaepass_profile') || '{}');
+  if (!uaePassData.fullName) {
+    Object.assign(uaePassData, {
+      fullName: 'Ahmed Mohammed Al-Mansouri',
+      gender: 'Male', verified: true
+    });
+  }
+
+  // ── Carousel pills ────────────────────────────────────────────
+  const INTERESTS = [
+    'Specialty coffee','Brazilian Jiu Jitsu','Film photography',
+    'Indie tech','Sunset desert hikes','Vinyl collecting',
+    'Contemporary art','Street photography','Mountain biking',
+    'Electronic music','Sustainable fashion','Poetry slams',
+    'Coding hackathons','Jazz & blues','Korean BBQ',
+    'Rooftop yoga','Ice skating','90s Hip Hop',
+  ];
+
+
+  // ── Step 1: platform toggle ───────────────────────────────────
+  function togglePlatform(p) {
+    const card = document.getElementById(p + '-card');
+    if (selectedPlatforms.includes(p)) {
+      selectedPlatforms = selectedPlatforms.filter(x => x !== p);
+      card.classList.remove('selected');
+    } else {
+      selectedPlatforms.push(p);
+      card.classList.add('selected');
+    }
+    const btn = document.getElementById('choiceContinueBtn');
+    btn.classList.toggle('active', selectedPlatforms.length > 0);
+  }
+
+  function continueWithSelection() {
+    // Simulate auth for selected platforms
+    if (selectedPlatforms.includes('linkedin')) connectLinkedIn();
+    if (selectedPlatforms.includes('instagram')) connectInstagram();
+
+    // Save what we have and move straight to next step
+    try {
+      const profileData = JSON.parse(localStorage.getItem('waselni_profile') || '{}');
+      profileData.legalName = uaePassData.fullName || '';
+      profileData.gender = uaePassData.gender || '';
+      profileData.platforms = connectedPlatforms || [];
+      profileData.emiratesId = uaePassData.emiratesId || '';
+      profileData.nationality = uaePassData.nationality || '';
+      localStorage.setItem('waselni_profile', JSON.stringify(profileData));
+    } catch(e) {}
+
+    window.location.href = 'waselni-preferences.html';
+  }
+
+  function connectLinkedIn() {
+    connectedPlatforms.push('linkedin');
+    addBadge('linkedin');
+    // LinkedIn pre-fills name, handle, and job title
+    document.getElementById('previewName').textContent = 'Alex Al-Mansouri';
+    
+    document.getElementById('verifiedText').textContent = 'Verified via UAE Pass';
+  }
+
+  function connectInstagram() {
+    connectedPlatforms.push('instagram');
+    addBadge('instagram');
+    // Instagram only pre-fills name and handle — no job title
+    if (!document.getElementById('previewName').textContent || document.getElementById('previewName').textContent === '—') {
+      document.getElementById('previewName').textContent = 'Alex Al-Mansouri';
+      // Instagram: handle not shown
+    }
+  }
+
+  function addBadge(platform) {
+    const row = document.getElementById('badgesRow');
+    const badge = document.createElement('div');
+    badge.className = 'connected-badge';
+    badge.innerHTML = platform === 'linkedin'
+      ? `<svg width="14" height="14" viewBox="0 0 24 24" fill="#2D6FA8"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433a2.062 2.062 0 01-2.063-2.065 2.064 2.064 0 112.063 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/></svg> LinkedIn connected`
+      : `<svg width="14" height="14" viewBox="0 0 24 24" fill="#E1306C"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zM12 0C8.741 0 8.333.014 7.053.072 2.695.272.273 2.69.073 7.052.014 8.333 0 8.741 0 12c0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98C8.333 23.986 8.741 24 12 24c3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98C15.668.014 15.259 0 12 0zm0 5.838a6.162 6.162 0 100 12.324 6.162 6.162 0 000-12.324zM12 16a4 4 0 110-8 4 4 0 010 8zm6.406-11.845a1.44 1.44 0 100 2.881 1.44 1.44 0 000-2.881z"/></svg> Instagram connected`;
+    row.appendChild(badge);
+  }
+
+  // ── Continue to next screen ───────────────────────────────────
+  function continueToNext() {
+    try {
+      const profileData = JSON.parse(localStorage.getItem('waselni_profile') || '{}');
+      profileData.legalName = uaePassData.fullName || '';
+      profileData.gender = uaePassData.gender || '';
+      profileData.platforms = connectedPlatforms || [];
+      profileData.emiratesId = uaePassData.emiratesId || '';
+      profileData.nationality = uaePassData.nationality || '';
+      const dn = document.getElementById('displayName');
+      if (dn) profileData.displayName = dn.value.trim() || null;
+      localStorage.setItem('waselni_profile', JSON.stringify(profileData));
+    } catch(e) {}
+    window.location.href = 'waselni-preferences.html';
+  }
+
+  function goBack() {
+    window.location.href = 'waselni-auth-uaepass.html';
+  }
+
+  const _role2 = localStorage.getItem('waselni_role') || 'passenger';
+  const _total2 = (_role2 === 'driver' || _role2 === 'both') ? 6 : 5;
+  const _lbl2 = document.getElementById('pageEyebrow');
+  if (_lbl2) _lbl2.textContent = 'Step 2 of ' + _total2;
+
+  const _role = localStorage.getItem('waselni_role') || 'passenger';
+  const _total = (_role === 'driver' || _role === 'both') ? 6 : 5;
+  const _el = document.getElementById('stepLabel');
+  if (_el) _el.textContent = 'Step 2 of ' + _total;
+</script>
+</body>
+</html>
