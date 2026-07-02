@@ -42,7 +42,15 @@
   // ---------- waselni-home.html : remember + refresh + log-out row ----------
   if (path === 'waselni-home.html') {
     try { LS.setItem('waselni_onboarding_complete', '1'); } catch (e) {}   // reaching home = onboarded
-    try { if (window.WaselniData && WaselniData.ready && WaselniData.currentUserId()) WaselniData.init(); } catch (e) {}
+    try {
+      if (window.WaselniData && WaselniData.ready) {
+        if (WaselniData.currentUserId()) { WaselniData.init(); }            // returning → restore from DB
+        else {                                                              // just onboarded → create in DB
+          var p = JSON.parse(LS.getItem('waselni_profile') || '{}');
+          if (p.legalName || p.fullName) WaselniData.saveProfile();
+        }
+      }
+    } catch (e) {}
 
     document.addEventListener('DOMContentLoaded', function () {
       try {

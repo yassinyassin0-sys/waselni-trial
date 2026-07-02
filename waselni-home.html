@@ -1423,9 +1423,9 @@
     <!-- Licence required overlay -->
     <div class="licence-overlay" id="licenceOverlay" onclick="closeLicenceOverlay()">
       <div class="licence-modal" onclick="event.stopPropagation()">
-        <div class="licence-modal-title" id="licenceModalTitle">Verify your licence</div>
-        <div class="licence-modal-desc">To drive on Waselni you need to verify your UAE driving licence. It only takes a minute.</div>
-        <button class="licence-modal-btn" id="licenceModalBtn">Verify licence →</button>
+        <div class="licence-modal-title" id="licenceModalTitle">Become a driver</div>
+        <div class="licence-modal-desc">Add your UAE driving licence and your car — just a quick scan of each. Passengers will see your verified car at pickup.</div>
+        <button class="licence-modal-btn" id="licenceModalBtn">Add car &amp; licence →</button>
         <button class="licence-modal-cancel" onclick="closeLicenceOverlay()">Not now</button>
       </div>
     </div>
@@ -2277,10 +2277,11 @@
   }
 
   function showLicencePrompt(intendedRole) {
-    const label = intendedRole === 'both' ? 'Both' : 'Driver';
-    document.getElementById('licenceModalTitle').textContent = 'Switch to ' + label;
+    document.getElementById('licenceModalTitle').textContent = intendedRole === 'both' ? 'Drive & ride' : 'Become a driver';
     document.getElementById('licenceModalBtn').onclick = function() {
-      localStorage.setItem('waselni_role', intendedRole);
+      // Remember the role they want; driver-verification applies it only once they actually finish,
+      // so bailing out leaves them as a passenger (no car-less driver).
+      localStorage.setItem('waselni_pending_role', intendedRole);
       window.location.href = 'waselni-driver-verification.html';
     };
     document.getElementById('licenceOverlay').classList.add('active');

@@ -77,6 +77,7 @@
   <script src="config.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="waselni-data.js"></script>
+  <script src="waselni-trial.js"></script>
 </head>
 <body>
 <div class="page">
@@ -241,15 +242,10 @@
     document.getElementById('continueBtn').disabled = selected.size === 0;
   }
 
-  async function continueToNext() {
+  function continueToNext() {
     const profile = JSON.parse(localStorage.getItem('waselni_profile') || '{}');
     profile.preferences = Array.from(selected);
     localStorage.setItem('waselni_profile', JSON.stringify(profile));
-    // Onboarding complete → save the real profile to the backend.
-    // No-op (safe) until Supabase keys are in config.js.
-    try {
-      if (window.WaselniData && WaselniData.ready) await WaselniData.saveProfile();
-    } catch (e) { console.warn('[waselni] save on continue', e); }
     if (userRole === 'driver' || userRole === 'both') {
       window.location.href = 'waselni-driver-verification.html';
     } else {

@@ -230,7 +230,6 @@
 
     </div>
     <div class="footer-note">You can change this anytime in settings</div>
-    <div class="footer-note" style="margin-top:7px;">Been here before? <span style="color:#3D1E5E;font-weight:500;cursor:pointer;" onclick="window.location.href='waselni-login.html'">Log in</span></div>
   </div>
 
   <div class="home-indicator"></div>
@@ -239,8 +238,7 @@
 </div>
 
 <script>
-// First-time visitor — show onboarding below. (Returning users are already
-// redirected to home from the <head>, before this screen renders.)
+localStorage.removeItem('waselni_onboarding_complete');
 
 function selectRole(role) {
   localStorage.setItem('waselni_role', role);
