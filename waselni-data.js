@@ -160,12 +160,135 @@
       ls.setProfile(rowToProfile(row));
       ls.setRole(row.role || 'both');
       return rowToProfile(row);
-    }
+    },
 
-    /* ===== Phase 2 (journeys + matching) lands here next ====================
-       postJourney(), getJourneys(), requestRide(), getMyRide() — a passenger
-       request matched to a real driver + co-passengers from the pool, then
-       the ride lifecycle. Building after Phase 1 is wired & tested. ======= */
+    /* ===== Phase 2 · journeys + matching ================================= */
+
+    /* Driver posts a ride they're offering. */
+    async postJourney(j) {
+      if (!sb) return null;
+      const me = this.currentUserId(); if (!me) return null;
+      const row = { driver_id: me, from_area: j.from || '', to_area: j.to || '',
+                    depart_label: j.time || j.depart || null, seats: j.seats || 3, notes: j.notes || null };
+      const { data, error } = await sb.from('trial_journeys').insert(row).select('*').single();
+      if (error) { console.warn('[waselni] postJourney', error.message); return null; }
+      return data;
+    },
+
+    /* The driver's own latest posted journey (or null). */
+    async getMyJourney() {
+      if (!sb) return null;
+      const me = this.currentUserId(); if (!me) return null;
+      const { data } = await sb.from('trial_journeys').select('*')
+        .eq('driver_id', me).order('created_at', { ascending: false }).limit(1);
+      return (data && data[0]) || null;
+    },
+
+    /* Open journeys from OTHER drivers, each with the driver's person card + seatsLeft. */
+    async getOpenJourneys() {
+      if (!sb) return [];
+      const me = this.currentUserId();
+      const { data } = await sb.from('trial_journeys').select('*').order('created_at', { ascending: false });
+      const journeys = (data || []).filter(j => j.driver_id !== me);
+      if (!journeys.length) return [];
+      const ids = [...new Set(journeys.map(j => j.driver_id))];
+      const { data: users } = await sb.from('trial_users').select('*').in('id', ids);
+      const byId = {}; (users || []).forEach(u => { byId[u.id] = u; });
+      const { data: reqs } = await sb.from('trial_requests').select('journey_id,status');
+      const taken = {}; (reqs || []).forEach(r => { if (r.status === 'accepted') taken[r.journey_id] = (taken[r.journey_id] || 0) + 1; });
+      return journeys.map(j => ({
+        ...j,
+        driver: byId[j.driver_id] ? rowToPerson(byId[j.driver_id]) : null,
+        seatsLeft: (j.seats || 0) - (taken[j.id] || 0),
+      }));
+    },
+
+    /* Passenger asks for a ride → the engine matches it against open journeys →
+       create a pending request on the best one. Returns {status, match?}. */
+    async requestRide(req) {
+      if (!sb) return { status: 'no_backend' };
+      const me = this.currentUserId(); if (!me) return { status: 'no_user' };
+      const meP = ls.profile();
+      const journeys = await this.getOpenJourneys();
+      const M = window.WaselniMatching;
+      const pax = { jobTitles: meP.jobTitles, interests: meP.interests, preferences: meP.preferences,
+                    gender: meP.gender, destination: req.destination || req.to };
+      const ranked = M ? M.rankJourneysFor(pax, journeys, req.intent)
+                       : journeys.map(j => ({ journey: j, reasons: [] }));
+      if (!ranked.length) return { status: 'no_matches' };
+      const best = ranked[0];
+      const { error } = await sb.from('trial_requests')
+        .upsert({ journey_id: best.journey.id, passenger_id: me, status: 'pending' },
+                { onConflict: 'journey_id,passenger_id' });
+      if (error) { console.warn('[waselni] requestRide', error.message); return { status: 'error' }; }
+      return { status: 'pending', match: { driver: best.journey.driver, journey: best.journey, reasons: best.reasons } };
+    },
+
+    /* Passenger's current ride: their latest request + the driver + co-passengers. */
+    async getMyMatch() {
+      if (!sb) return null;
+      const me = this.currentUserId(); if (!me) return null;
+      const { data: reqs } = await sb.from('trial_requests').select('*')
+        .eq('passenger_id', me).order('created_at', { ascending: false }).limit(1);
+      const myReq = reqs && reqs[0]; if (!myReq) return null;
+      const { data: journey } = await sb.from('trial_journeys').select('*').eq('id', myReq.journey_id).maybeSingle();
+      if (!journey) return null;
+      const { data: driver } = await sb.from('trial_users').select('*').eq('id', journey.driver_id).maybeSingle();
+      const { data: co } = await sb.from('trial_requests').select('passenger_id,status')
+        .eq('journey_id', journey.id).eq('status', 'accepted');
+      const coIds = (co || []).map(r => r.passenger_id).filter(id => id !== me);
+      let coPassengers = [];
+      if (coIds.length) {
+        const { data: cu } = await sb.from('trial_users').select('*').in('id', coIds);
+        coPassengers = (cu || []).map(rowToPerson);
+      }
+      return { status: myReq.status, journey, driver: driver ? rowToPerson(driver) : null, coPassengers };
+    },
+
+    /* Driver's pending candidate passengers, ranked by the driver's own score. */
+    async getCandidates() {
+      if (!sb) return [];
+      const j = await this.getMyJourney(); if (!j) return [];
+      const { data: reqs } = await sb.from('trial_requests').select('*').eq('journey_id', j.id).eq('status', 'pending');
+      const ids = (reqs || []).map(r => r.passenger_id);
+      if (!ids.length) return [];
+      const { data: users } = await sb.from('trial_users').select('*').in('id', ids);
+      const byId = {}; (users || []).forEach(u => { byId[u.id] = u; });
+      const meP = ls.profile();
+      const M = window.WaselniMatching;
+      return (reqs || []).map(r => {
+        const u = byId[r.passenger_id]; if (!u) return null;
+        const them = { jobTitles: u.job_titles, interests: u.interests, preferences: u.audience };
+        const score = M ? M.networkScore(meP, them, j.intent) : 0;
+        const why = M ? M.reasons(meP, them) : [];
+        return { requestId: r.id, person: rowToPerson(u), reasons: why, _score: score };
+      }).filter(Boolean).sort((a, b) => b._score - a._score);
+    },
+
+    /* Driver accepts or declines a candidate. */
+    async decideCandidate(requestId, accept) {
+      if (!sb) return false;
+      const { error } = await sb.from('trial_requests')
+        .update({ status: accept ? 'accepted' : 'declined' }).eq('id', requestId);
+      if (error) { console.warn('[waselni] decideCandidate', error.message); return false; }
+      return true;
+    },
+
+    /* Record a connection between two riders (Stars Aligned payoff). */
+    async createConnection(otherId) {
+      if (!sb) return false;
+      const me = this.currentUserId(); if (!me || !otherId) return false;
+      const a = me < otherId ? me : otherId, b = me < otherId ? otherId : me;   // stable order = unique pair
+      const { error } = await sb.from('trial_connections').upsert({ user_a: a, user_b: b }, { onConflict: 'user_a,user_b' });
+      return !error;
+    },
+
+    /* Live updates whenever any ride request changes (driver's candidates / passenger's status). */
+    onRequestsChange(cb) {
+      if (!sb) return;
+      try { sb.channel('wd-requests').on('postgres_changes',
+        { event: '*', schema: 'public', table: 'trial_requests' }, cb).subscribe(); } catch (e) {}
+    }
   };
 
   window.WaselniData = WaselniData;

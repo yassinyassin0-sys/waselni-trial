@@ -60,3 +60,35 @@ questions + ops's answers, kept together for reference.
 5. **Prototype→trial sync** — cleanest way to re-apply the thin wiring after a designer screen update, no drift?
 6. **Supabase** — region for UAE users, free-tier limits, RLS scope.
 7. **Domain** — subdomain vs custom.
+
+---
+
+## Round 2 — build complete + go-live confirmations (2026-07-02)
+
+**Decision confirmed:** RLS **(a)** — permissive for the closed trial. Proceed.
+
+**Coder's parallel work — DONE & verified:**
+- **Multi-user:** login front door (unrecognised person/device → asked for first name + PIN, with a Create-account path) + **Log out / Switch user** in the profile (multiple people per device).
+- **Wiring consolidation:** all trial wiring now lives in a single `waselni-trial.js` that every screen includes (the "inject one script" model).
+- **Sync script:** `LiveTrial/tools/sync-from-prototype.py`. Designer updates a prototype screen → `python3 sync-from-prototype.py --apply` re-copies it + re-injects the include block + fixes broken local font links (→ Google Fonts CDN); **never touches** the 3 trial-specific screens (auth, login, driver-verification). Then `git push` → Netlify deploys.
+- **Schema:** `db/schema.sql` now has login columns (`username`, `pin`) + a unique index on `(lower(username), pin)` — current; run as-is.
+
+**Go-live action for ops (confirmed):** once the Netlify site is live and the URL is known, add that domain to the **Google Maps API key's allowed referrers** (GCP → APIs & Services → Credentials → the key → Website restrictions) — else home's map + Places autocomplete fail. Nothing needed in the code. → Ops: noted, will do once the URL exists.
+
+**Ops next:** create Supabase project (Singapore) → run `db/schema.sql` → paste Project URL + anon key into `config.js` → separate GitHub repo → connect Netlify.
+
+---
+
+## Round 3 — Netlify + auto-deploy live (2026-07-02)
+
+**Completed by ops:**
+- **Trial repo:** `yassinyassin0-sys/waselni-trial` pushed to GitHub (23 files).
+- **Netlify site:** `https://waselni-trial.netlify.app` — LIVE ✅ (login screen rendering).
+- **Auto-deploy:** GitHub Actions workflow (`.github/workflows/netlify-deploy.yml`) triggers on every push to `main` → Netlify deploys in ~60s. Secrets in repo: `NETLIFY_AUTH_TOKEN`, `NETLIFY_SITE_ID`.
+- **Netlify PAT:** created, no expiration, description "waselni-trial GitHub Actions deploy". Used in the workflow via `NETLIFY_AUTH_TOKEN` secret.
+- **Google Maps API key:** referrer restriction `*.netlify.app/*` was already in place before the Netlify URL existed — no further action needed.
+
+**⚠️ Local repo note:** the workflow file was committed via the GitHub web editor (sandbox couldn't push). Before doing any local `git push` from the `LiveTrial/` folder, run `git pull origin main` first to sync.
+
+**One remaining step before trial goes live:**
+1. Supabase: go to Project Settings → API → copy **Project URL** + **anon public key** → paste into `LiveTrial/config.js` → `git push` → Netlify redeploys automatically.
