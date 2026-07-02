@@ -1,12 +1,11 @@
 // =====================================================================
 //  Waselni · Live Trial — configuration
-//  Fill these in after creating your Supabase project (see README.md).
-//  Supabase → Project Settings → API → copy the two values below.
+//  Supabase → Project Settings → API → these are the live values.
 //  These are PUBLIC values (safe to ship in the browser).
 // =====================================================================
 window.WASELNI_CONFIG = {
-  SUPABASE_URL:      'PASTE_YOUR_PROJECT_URL_HERE',       // e.g. https://abcd1234.supabase.co
-  SUPABASE_ANON_KEY: 'PASTE_YOUR_ANON_PUBLIC_KEY_HERE',   // the long "anon public" key
+  SUPABASE_URL:      'https://iuxfshlibprkopbnmkab.supabase.co',
+  SUPABASE_ANON_KEY: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Iml1eGZzaGxpYnBya29wYm5ta2FiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODI5ODQ1MzMsImV4cCI6MjA5ODU2MDUzM30.zQXS0HAIa6r6-fo2-QiaAuGjv31cdvW-6c8N_Y9o67o',
 
   INVITE_CODE: 'WASELNI'   // friends type this to get in — change it to anything you like
 };
